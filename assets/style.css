@@ -16,7 +16,7 @@ h1 {
     max-width: 400px;
     margin: auto;
     background-color: turquoise;
-    min-height: 150px;
+    min-height: 160px;
 }
 .score {
     margin: 10px;
@@ -24,10 +24,10 @@ h1 {
 .status {
     min-height: 80px;
 }
-.rpsBtnGrp {
+.btnGrp {
     width: 100%;
 }
-.rpsBtnGrp button {
+.btnGrp button {
     display: block;
     float: left;
     margin: 0;

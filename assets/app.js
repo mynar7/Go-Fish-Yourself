@@ -1,18 +1,17 @@
 // Initialize Firebase
 var config = {
-    apiKey: "AIzaSyAiqedcuwlanvn7xCgrRs0yJyOf4G6ceCE",
-    authDomain: "rps-game-81763.firebaseapp.com",
-    databaseURL: "https://rps-game-81763.firebaseio.com",
-    projectId: "rps-game-81763",
+    apiKey: "AIzaSyBBflwDizYQNO2MpD9EpXzrgWUo1fmctCQ",
+    authDomain: "go-fish-yourself.firebaseapp.com",
+    databaseURL: "https://go-fish-yourself.firebaseio.com",
+    projectId: "go-fish-yourself",
     storageBucket: "",
-    messagingSenderId: "817026141804"
-};
+    messagingSenderId: "219349623457"
+  };
 firebase.initializeApp(config);
 //make a database variable
 let db = firebase.database();
 //declare variables
 let userName;
-let choice;
 let userId;
 let dataRef;
 let userRef;
@@ -125,7 +124,7 @@ function assignTurn() {
         //compare to this client's userRef
         let x = snap.val();
         if(x === userId) {
-            //if this client's userRef, set var myTurn true, else false
+            //if this client's userId, set var myTurn true, else false
             myTurn = true;
             $('#status').empty();
             $('<li>').html("It's your turn.").appendTo("#status");
@@ -156,102 +155,25 @@ function changeTurn () {
 //this fx toggles the client's RPS buttons on/off
 function toggleButtons(bool) {
     if(bool) {
-        var x = document.getElementById("rpsBtnGrp").querySelectorAll('button');
+        var x = document.getElementById("btnGrp").querySelectorAll('button');
         for (i = 0; i < x.length; i++) {
             x[i].removeAttribute("disabled");
         }
     } else {
         if(opponentId) {
+            $('#status').empty();
             $('<li>').html("Waiting for Opponent.").appendTo("#status");                    
         }
-        var x = document.getElementById("rpsBtnGrp").querySelectorAll('button');
+        var x = document.getElementById("btnGrp").querySelectorAll('button');
         for (i = 0; i < x.length; i++) {
             x[i].setAttribute("disabled", "true");
         }
     }
 }
-//RPS button listener
-$('#rpsBtnGrp').on("click", 'button', function(){
-    //capture which choice
-    choice = $(this).html().toLowerCase();
-    //send choice to status
-    $('#status').empty();
-    $('<li>').html("Your choice: " + choice.toUpperCase()).appendTo('#status');
-    //is there a choice there?
-    dataRef.child('data/choices').once("value", function(snap){
-        if(snap.val()){
-            //if choice here, compare and assign winner, then delete that choice
-            let oppChoice = snap.val().chose;
-            //send opponent choice to DOM
-            $('<li>').html("Opponent chose: " + oppChoice.toUpperCase()).appendTo('#status');
-            //return bool or other for win/lose
-            //call outcome
-            outcome(rpsLogic(choice, oppChoice));            
-            dataRef.child('data/choices').remove();
-        } else {
-            //if no choice here, assign current choice
-            dataRef.child('data/choices').update({
-                chose: choice,
-            });
-            changeTurn();
-        } //end else
-    }); //end data ref call
-    dataRef.child('data/choices').onDisconnect().remove();
+//button listener
+$('#btnGrp').on("click", 'button', function(){
+    changeTurn();        
 }); //end listener fx
-
-//outcome logic
-function outcome(str) {
-    //call server and update score
-    dataRef.child('data/scores').once("value", function(snap){
-        if(snap.val()){
-            snap.forEach(function(snapChild){
-                //if my score
-                if(userId == snapChild.key) {
-                    let winNum = snapChild.val().wins;
-                    let lossNum = snapChild.val().losses;
-                    let drawNum = snapChild.val().draws;                 
-                    switch(str) {
-                        case 'win':
-                            winNum++;
-                        break;
-                        case 'loss':
-                            lossNum++;
-                        break;
-                        case 'draw':
-                            drawNum++;
-                        break;
-                    }//end switch
-                    dataRef.child('data/scores/' + userId).update({
-                        wins: winNum,
-                        losses: lossNum,
-                        draws: drawNum
-                    });//end dataRef
-                } else {
-                    //else my opponents score
-                    let winNum = snapChild.val().wins;
-                    let lossNum = snapChild.val().losses;
-                    let drawNum = snapChild.val().draws;
-                    switch(str) {
-                        case 'win':
-                            lossNum++;
-                        break;
-                        case 'loss':
-                            winNum++;
-                        break;
-                        case 'draw':
-                            drawNum++;
-                        break;
-                    }//end switch
-                    dataRef.child('data/scores/' + snapChild.key).update({
-                        wins: winNum,
-                        losses: lossNum,
-                        draws: drawNum
-                    });//end dataref
-                } //end else
-            });//end forEach
-        }//end if snap.val 
-    });
-}// end outcome fx
 
 
 //initialize score
@@ -267,85 +189,6 @@ function initialScore() {
     dataRef.child('data/scores/' + userId).onDisconnect().remove();
 }
 
-//rps game Logic
-function rpsLogic(user, opponent) {
-    switch(user){
-        case 'rock':
-            switch(opponent) {
-                case 'rock':
-                    return 'draw';
-                break;
-                case 'paper':
-                    return 'loss';
-                break;
-                case 'scissors':
-                    return 'win';
-                break;
-            } //end rock case switch
-        break;
-        case 'paper':
-            switch(opponent) {
-                case 'rock':
-                    return 'win';
-                break;
-                case 'paper':
-                    return 'draw';
-                break;
-                case 'scissors':
-                    return 'loss';
-                break;
-            } //end paper case switch
-        break;
-        case 'scissors':
-            switch(opponent) {
-                case 'rock':
-                    return 'loss';
-                break;
-                case 'paper':
-                    return 'win';
-                break;
-                case 'scissors':
-                    return 'draw';
-                break;
-            } //end scissors case switch
-        break;
-    } //end user switch
-} //end rps game logic
-
-function rpsLogicRev(str) {
-    switch(str) {
-        case 'win':
-            switch(choice) {
-                case 'rock':
-                    return 'scissors';
-                break;
-                case 'paper':
-                    return 'rock';
-                break;
-                case 'scissors':
-                    return 'paper';
-                break;
-            } //end win case switch
-        break;
-        case 'loss':
-            switch(choice) {
-                case 'rock':
-                    return 'paper';
-                break;
-                case 'paper':
-                    return 'scissors';
-                break;
-                case 'scissors':
-                    return 'rock';
-                break;
-            } //end loss case switch
-        break;
-        case 'draw':
-            return str;
-        break;
-    }//end switch
-}
-
 //chat submit button event listener function
 $('#enter').on("click", function(event){
     event.preventDefault();
@@ -354,13 +197,15 @@ $('#enter').on("click", function(event){
     $('#textInput').val("");
 });
 
+//fx to change username
 function changeName(str) {
     userName = str;
     userRef.update({
         name: userName
     });
 }
-//clear chat
+
+//clear chat fx
 $('#clear').on("click", function(event){
     event.preventDefault();
     $('#chat').empty();
@@ -369,6 +214,7 @@ $('#clear').on("click", function(event){
 //assign a listener to DB scores
 function assignScore() {
     dataRef.child('data/scores').on("value", function(snap){
+        $('#status').empty();
         snap.forEach(function(snapChild){
             if(snapChild.key == userId) {
                 let wins = snapChild.val().wins;
@@ -378,23 +224,14 @@ function assignScore() {
                 $('#losses').html("Losses: " + losses);
                 $('#draws').html("Draws: " + draws);
                 if(winCount !== wins) {
-                    if(!myTurn) {
-                        $('#status li:nth-child(2)').html("Opponent chose: " + rpsLogicRev("win").toUpperCase());
-                    }
                     $('<li>').html("You won!").appendTo("#status");
                     turnNotice();
                 }
                 if(lossCount !== losses) {
-                    if(!myTurn) {
-                        $('#status li:nth-child(2)').html("Opponent chose: " + rpsLogicRev("loss").toUpperCase());
-                    }
                     $('<li>').html("You lost!").appendTo("#status");
                     turnNotice();
                 }
                 if(drawCount !== draws) {
-                    if(!myTurn) {
-                        $('#status li:nth-child(2)').html("Opponent chose: " + choice.toUpperCase());
-                    }
                     $('<li>').html("It was a draw!").appendTo("#status");
                     turnNotice();
                 }
@@ -413,6 +250,7 @@ function turnNotice() {
         $('<li>').html("Waiting for Opponent.").appendTo("#status");                    
     }
 }
+
 //assign a listener to DB chat message, then pass the most recent data to fx that prints to each user's window
 function assignChat() {
     dataRef.child('chat').on("value", function(snap){
@@ -421,7 +259,7 @@ function assignChat() {
             chatUpdate(snap.val().msgBy, snap.val().lastMsg);
         } else {
             //use that null error to print a disconnect
-            chatUpdate("System", "<span id='sysMsg'>player 2 disconnected</span>");
+            chatUpdate("System", "<span id='sysMsg'>player disconnected</span>");
         }
     });
 }
