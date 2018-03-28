@@ -1,2 +1,2 @@
-# MPRPS
-Rock Paper Scissors with multiplayer
+# Go Fish Yourself
+Online Go Fish with insults
