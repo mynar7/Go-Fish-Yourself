@@ -21,6 +21,12 @@ let winCount;
 let lossCount;
 let drawCount;
 let myTurn = false;
+
+let deckId;
+let myHand;
+let oppHand;
+let deckEmpty;
+
 //grab the firebase connections reference
 let userCons = db.ref('.info/connected');
 //make a reference for my lobbies folder on the database
@@ -65,6 +71,11 @@ userCons.on("value", function(userList){
                         assignScore();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
+
+                        makeDeck();
+                        assignDeckListen();
+                        assignHandListen();
+
                         changeTurn();
                         //grab opponent reference
                         dataRef.child('players').once("value", function(playerSnap){
@@ -116,6 +127,8 @@ function makeLobby() {
     assignChat();
     chatPrint(userName, "Started Lobby");
     assignTurn();
+    assignDeckListen();
+    assignHandListen();
 }
 //turn listener assignment
 function assignTurn() {
@@ -338,4 +351,78 @@ function parseInput(str) {
     } else {
         return str;
     }
+}
+
+//begin Go Fish stuff
+
+function makeDeck() {
+    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+    $.ajax({
+        url: query,
+        method: 'GET'
+    }).then(function(resp){
+        deckId = resp.deck_id;
+        dataRef.child('data/goFish').update({
+            deck_id: deckId
+        });
+    });//end then
+}
+function drawCard(num) {
+    let query = "https://deckofcardsapi.com/api/deck/" + deckId + "/draw/?count=" + num;
+    if(deckEmpty) {
+        return 'error';
+    }
+    $.ajax({
+        url: query,
+        method: 'GET'
+    }).then(function(resp){
+        if(resp.success) {
+            if(resp.remaining === 0) {
+                deckEmpty = true;
+            }
+        addToHand(resp.cards);
+        } else {
+            deckEmpty = true;
+            if(resp.cards.length > 0){
+                addToHand(resp.cards);
+            }
+        }//end else
+    }); //end ajax
+}
+//takes an array of objects, adds array to user's hand of cards
+function addToHand (arr) {
+    dataRef.child('data/goFish/hands').child(userId).once("value", function(snap){
+        if(!snap.val() || snap.val().length === 0) {
+            dataRef.child('data/goFish/hands').child(userId).update({
+                hand: arr
+            });
+        } else {
+            // console.log("add: ", snap.val().hand);
+            dataRef.child('data/goFish/hands').child(userId).update({
+                hand: snap.val().hand.concat(arr)
+            });
+        }
+    });
+}
+
+function assignDeckListen() {
+    dataRef.child('data/goFish').child('deck_id').on("value", function(snap){
+        deckId = snap.val();
+        //console.log(deckId);
+    });
+    dataRef.child('data/goFish').onDisconnect().remove();    
+}
+
+function assignHandListen() {
+    dataRef.child('data/goFish/hands').on('value', function(snap){
+        snap.forEach(function(childSnap){
+            if(childSnap.key === userId) {
+                myHand = childSnap.val().hand;
+            } else {
+                oppHand = childSnap.val().hand;
+            }
+        });//end forEach
+        //console.log("myHand: ", JSON.stringify(myHand));
+        //console.log("oppHand: ", JSON.stringify(oppHand));        
+    });
 }
