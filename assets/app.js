@@ -72,8 +72,8 @@ userCons.on("value", function(userList){
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
                         //go fish stuff
-                        makeDeck();
                         assignDeckListen();
+                        makeDeck();
                         assignHandListen();
                         assignPointListen();
 
@@ -369,7 +369,6 @@ function makeDeck() {
         dataRef.child('data/goFish').update({
             deck_id: deckId
         });
-        drawCard(5);
     });//end then
 }
 
@@ -419,6 +418,7 @@ function goFish (card) {
     if(index === -1) {
         console.log("go fish");
         drawCard(1);
+        //changeTurn();
     } else {
         oppHand.splice(index, 1);
         let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
@@ -426,7 +426,6 @@ function goFish (card) {
         addPoint();
     }
     updateHands();
-    changeTurn();
 }
 
 function updateHands () {
@@ -439,7 +438,10 @@ function updateHands () {
 //captures deck ID to share between users
 function assignDeckListen() {
     dataRef.child('data/goFish').child('deck_id').on("value", function(snap){
-        deckId = snap.val();
+        if(snap.val()) {
+            deckId = snap.val();
+            drawCard(5);
+        }
         //console.log(deckId);
     });
     dataRef.child('data/goFish').onDisconnect().remove();    
@@ -447,11 +449,17 @@ function assignDeckListen() {
 
 function assignHandListen() {
     dataRef.child('data/goFish/hands').on('value', function(snap){
+        /*
         if(!snap.hasChild(userId) && deckId !== null) {
             drawCard(5);
         }
+        */
         myHand = snap.child(userId).val();
         oppHand = snap.child(opponentId).val();
+
+        if(myHand && snap.val()){
+            checkPairs();
+        }
         //console.log("myHand: ", JSON.stringify(myHand));
         //console.log("oppHand: ", JSON.stringify(oppHand));        
     });
@@ -477,4 +485,35 @@ function addPoint () {
             });
         }
     });
+}
+
+//function to display hand
+/*
+this function should take myHand and iterate over it, making an <img> for each cardObject in myHand array
+src should be attached from the card object image url
+the index of that card in the myHand array should be stored as a data-attribute, eg, $('<img>').attr("data-index", index);
+those img should then be appended to the targetted div, I would suggest btn group
+*/
+
+//function to compare cards in player's own hand and remove duplicates, then add points
+function checkPairs() {
+    for (let index = 0; index < myHand.length; index++) {
+        let arr = myHand.slice();
+        let searchCard = arr.splice(index, 1);
+        //console.log("card: ", JSON.stringify(searchCard));
+        //console.log("value: ", searchCard[0].value);
+        //console.log("hand: ", JSON.stringify(arr));
+        let match = arr.findIndex(x => {return x.value === searchCard[0].value});
+
+        if(match > -1) {
+            //console.log("match!!");
+            arr.splice(match, 1);
+            myHand = arr;
+            updateHands();
+            addPoint();
+        } else {
+            //console.log("no match");
+        }
+        
+    }
 }
