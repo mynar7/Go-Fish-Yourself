@@ -71,10 +71,11 @@ userCons.on("value", function(userList){
                         assignScore();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
-
+                        //go fish stuff
                         makeDeck();
                         assignDeckListen();
                         assignHandListen();
+                        assignPointListen();
 
                         changeTurn();
                         //grab opponent reference
@@ -127,8 +128,10 @@ function makeLobby() {
     assignChat();
     chatPrint(userName, "Started Lobby");
     assignTurn();
+    //go fish fxs
     assignDeckListen();
     assignHandListen();
+    assignPointListen();
 }
 //turn listener assignment
 function assignTurn() {
@@ -355,6 +358,7 @@ function parseInput(str) {
 
 //begin Go Fish stuff
 
+//initialize and get a new deck of cards
 function makeDeck() {
     let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
@@ -365,8 +369,11 @@ function makeDeck() {
         dataRef.child('data/goFish').update({
             deck_id: deckId
         });
+        drawCard(5);
     });//end then
 }
+
+//draw cards and update firebase
 function drawCard(num) {
     let query = "https://deckofcardsapi.com/api/deck/" + deckId + "/draw/?count=" + num;
     if(deckEmpty) {
@@ -405,6 +412,15 @@ function addToHand (arr) {
     });
 }
 
+function removeFromHand (id, cardCode) {
+    
+}
+
+function compareCardToHand (cardCode) {
+
+}
+
+//captures deck ID to share between users
 function assignDeckListen() {
     dataRef.child('data/goFish').child('deck_id').on("value", function(snap){
         deckId = snap.val();
@@ -415,6 +431,9 @@ function assignDeckListen() {
 
 function assignHandListen() {
     dataRef.child('data/goFish/hands').on('value', function(snap){
+        if(!snap.child(userId).val() && deckId !== null) {
+            drawCard(5);
+        }
         snap.forEach(function(childSnap){
             if(childSnap.key === userId) {
                 myHand = childSnap.val().hand;
@@ -424,5 +443,32 @@ function assignHandListen() {
         });//end forEach
         //console.log("myHand: ", JSON.stringify(myHand));
         //console.log("oppHand: ", JSON.stringify(oppHand));        
+    });
+}
+
+function assignPointListen() {
+    dataRef.child('data/goFish/points').on('value', function(snap){
+        snap.forEach(function(childSnap){
+            if(childSnap.key === userId) {
+                myPoints = childSnap.val().points;
+            } else {
+                oppPoints = childSnap.val().points;
+            }
+        });//end forEach      
+    });
+}
+
+function addPoint () {
+    dataRef.child('data/goFish/points').child(userId).once("value", function(snap){
+        if(!snap.val() || snap.val().length === 0) {
+            dataRef.child('data/goFish/points').child(userId).update({
+                points: 1
+            });
+        } else {
+            // console.log("add: ", snap.val().hand);
+            dataRef.child('data/goFish/points').child(userId).update({
+                points: snap.val().points + 1
+            });
+        }
     });
 }
