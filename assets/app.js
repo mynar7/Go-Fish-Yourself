@@ -396,28 +396,44 @@ function drawCard(num) {
         }//end else
     }); //end ajax
 }
+
 //takes an array of objects, adds array to user's hand of cards
 function addToHand (arr) {
-    dataRef.child('data/goFish/hands').child(userId).once("value", function(snap){
-        if(!snap.val() || snap.val().length === 0) {
-            dataRef.child('data/goFish/hands').child(userId).update({
-                hand: arr
+    dataRef.child('data/goFish/hands').once("value", function(snap){
+        if(!snap.hasChild(userId) || snap.val().length === 0) {
+            dataRef.child('data/goFish/hands').update({
+                [userId]: arr
             });
         } else {
             // console.log("add: ", snap.val().hand);
-            dataRef.child('data/goFish/hands').child(userId).update({
-                hand: snap.val().hand.concat(arr)
+            dataRef.child('data/goFish/hands').update({
+                [userId]: snap.child(userId).val().concat(arr)
             });
         }
     });
 }
 
-function removeFromHand (id, cardCode) {
-    
+function goFish (card) {
+    let index;
+    index = oppHand.findIndex(x => {return x.value === card.value});
+    if(index === -1) {
+        console.log("go fish");
+        drawCard(1);
+    } else {
+        oppHand.splice(index, 1);
+        let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
+        myHand.splice(myCardIndex, 1);
+        addPoint();
+    }
+    updateHands();
+    changeTurn();
 }
 
-function compareCardToHand (cardCode) {
-
+function updateHands () {
+    dataRef.child('data/goFish/hands').update({
+        [userId]: myHand,
+        [opponentId]: oppHand
+    });
 }
 
 //captures deck ID to share between users
@@ -431,16 +447,11 @@ function assignDeckListen() {
 
 function assignHandListen() {
     dataRef.child('data/goFish/hands').on('value', function(snap){
-        if(!snap.child(userId).val() && deckId !== null) {
+        if(!snap.hasChild(userId) && deckId !== null) {
             drawCard(5);
         }
-        snap.forEach(function(childSnap){
-            if(childSnap.key === userId) {
-                myHand = childSnap.val().hand;
-            } else {
-                oppHand = childSnap.val().hand;
-            }
-        });//end forEach
+        myHand = snap.child(userId).val();
+        oppHand = snap.child(opponentId).val();
         //console.log("myHand: ", JSON.stringify(myHand));
         //console.log("oppHand: ", JSON.stringify(oppHand));        
     });
@@ -448,26 +459,21 @@ function assignHandListen() {
 
 function assignPointListen() {
     dataRef.child('data/goFish/points').on('value', function(snap){
-        snap.forEach(function(childSnap){
-            if(childSnap.key === userId) {
-                myPoints = childSnap.val().points;
-            } else {
-                oppPoints = childSnap.val().points;
-            }
-        });//end forEach      
+        myPoints = snap.child(userId).val();
+        oppPoints = snap.child(opponentId).val();
     });
 }
 
 function addPoint () {
-    dataRef.child('data/goFish/points').child(userId).once("value", function(snap){
-        if(!snap.val() || snap.val().length === 0) {
-            dataRef.child('data/goFish/points').child(userId).update({
-                points: 1
+    dataRef.child('data/goFish/points').once("value", function(snap){
+        if(!snap.hasChild(userId)) {
+            dataRef.child('data/goFish/points').update({
+                [userId]: 1
             });
         } else {
             // console.log("add: ", snap.val().hand);
-            dataRef.child('data/goFish/points').child(userId).update({
-                points: snap.val().points + 1
+            dataRef.child('data/goFish/points').update({
+                [userId]: snap.child(userId).val() + 1
             });
         }
     });
