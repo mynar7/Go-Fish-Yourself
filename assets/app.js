@@ -21,6 +21,12 @@ let winCount;
 let lossCount;
 let drawCount;
 let myTurn = false;
+
+let deckId;
+let myHand;
+let oppHand;
+let deckEmpty;
+
 //grab the firebase connections reference
 let userCons = db.ref('.info/connected');
 //make a reference for my lobbies folder on the database
@@ -65,6 +71,12 @@ userCons.on("value", function(userList){
                         assignScore();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
+                        //go fish stuff
+                        makeDeck();
+                        assignDeckListen();
+                        assignHandListen();
+                        assignPointListen();
+
                         changeTurn();
                         //grab opponent reference
                         dataRef.child('players').once("value", function(playerSnap){
@@ -116,6 +128,10 @@ function makeLobby() {
     assignChat();
     chatPrint(userName, "Started Lobby");
     assignTurn();
+    //go fish fxs
+    assignDeckListen();
+    assignHandListen();
+    assignPointListen();
 }
 //turn listener assignment
 function assignTurn() {
@@ -338,4 +354,127 @@ function parseInput(str) {
     } else {
         return str;
     }
+}
+
+//begin Go Fish stuff
+
+//initialize and get a new deck of cards
+function makeDeck() {
+    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+    $.ajax({
+        url: query,
+        method: 'GET'
+    }).then(function(resp){
+        deckId = resp.deck_id;
+        dataRef.child('data/goFish').update({
+            deck_id: deckId
+        });
+        drawCard(5);
+    });//end then
+}
+
+//draw cards and update firebase
+function drawCard(num) {
+    let query = "https://deckofcardsapi.com/api/deck/" + deckId + "/draw/?count=" + num;
+    if(deckEmpty) {
+        return 'error';
+    }
+    $.ajax({
+        url: query,
+        method: 'GET'
+    }).then(function(resp){
+        if(resp.success) {
+            if(resp.remaining === 0) {
+                deckEmpty = true;
+            }
+        addToHand(resp.cards);
+        } else {
+            deckEmpty = true;
+            if(resp.cards.length > 0){
+                addToHand(resp.cards);
+            }
+        }//end else
+    }); //end ajax
+}
+
+//takes an array of objects, adds array to user's hand of cards
+function addToHand (arr) {
+    dataRef.child('data/goFish/hands').once("value", function(snap){
+        if(!snap.hasChild(userId) || snap.val().length === 0) {
+            dataRef.child('data/goFish/hands').update({
+                [userId]: arr
+            });
+        } else {
+            // console.log("add: ", snap.val().hand);
+            dataRef.child('data/goFish/hands').update({
+                [userId]: snap.child(userId).val().concat(arr)
+            });
+        }
+    });
+}
+
+function goFish (card) {
+    let index;
+    index = oppHand.findIndex(x => {return x.value === card.value});
+    if(index === -1) {
+        console.log("go fish");
+        drawCard(1);
+    } else {
+        oppHand.splice(index, 1);
+        let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
+        myHand.splice(myCardIndex, 1);
+        addPoint();
+    }
+    updateHands();
+    changeTurn();
+}
+
+function updateHands () {
+    dataRef.child('data/goFish/hands').update({
+        [userId]: myHand,
+        [opponentId]: oppHand
+    });
+}
+
+//captures deck ID to share between users
+function assignDeckListen() {
+    dataRef.child('data/goFish').child('deck_id').on("value", function(snap){
+        deckId = snap.val();
+        //console.log(deckId);
+    });
+    dataRef.child('data/goFish').onDisconnect().remove();    
+}
+
+function assignHandListen() {
+    dataRef.child('data/goFish/hands').on('value', function(snap){
+        if(!snap.hasChild(userId) && deckId !== null) {
+            drawCard(5);
+        }
+        myHand = snap.child(userId).val();
+        oppHand = snap.child(opponentId).val();
+        //console.log("myHand: ", JSON.stringify(myHand));
+        //console.log("oppHand: ", JSON.stringify(oppHand));        
+    });
+}
+
+function assignPointListen() {
+    dataRef.child('data/goFish/points').on('value', function(snap){
+        myPoints = snap.child(userId).val();
+        oppPoints = snap.child(opponentId).val();
+    });
+}
+
+function addPoint () {
+    dataRef.child('data/goFish/points').once("value", function(snap){
+        if(!snap.hasChild(userId)) {
+            dataRef.child('data/goFish/points').update({
+                [userId]: 1
+            });
+        } else {
+            // console.log("add: ", snap.val().hand);
+            dataRef.child('data/goFish/points').update({
+                [userId]: snap.child(userId).val() + 1
+            });
+        }
+    });
 }
