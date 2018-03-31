@@ -19,7 +19,7 @@ h1 {
 .rps {
     max-width: 400px;
     margin: auto;
-    background-color: turquoise;
+    background-color: rgb(4,102,212);
     min-height: 160px;
 }
 .score {
