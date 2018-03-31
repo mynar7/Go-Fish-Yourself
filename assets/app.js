@@ -12,6 +12,7 @@ firebase.initializeApp(config);
 let db = firebase.database();
 //declare variables
 let userName;
+let oppName;
 let userId;
 let dataRef;
 let userRef;
@@ -26,6 +27,9 @@ let deckId;
 let myHand;
 let oppHand;
 let deckEmpty;
+
+let nameColor = "yellow";
+let chatTxtColor = "yellow";
 
 //grab the firebase connections reference
 let userCons = db.ref('.info/connected');
@@ -53,6 +57,7 @@ userCons.on("value", function(userList){
                         userId = userName;
                         //add default player name
                         changeName(userName);
+                        assignNameListen();
                         //assign ref for data for this lobby
                         dataRef = db.ref('/lobbyData/dataFor' + con.path.n[1]);
                         let dataCon = dataRef.child('players').push(true);  
@@ -111,6 +116,7 @@ function makeLobby() {
     userId = userName;
     //add default player name
     changeName(userName);
+    assignNameListen();
     //assign ref for data for this lobby
     dataRef = db.ref('/lobbyData/dataFor' + con.path.n[1]);
     let dataCon = dataRef.child('players').push(true);  
@@ -133,6 +139,18 @@ function makeLobby() {
     assignHandListen();
     assignPointListen();
 }
+
+//name listener
+function assignNameListen() {
+    lobbyRef.on("value", function(snap){
+        snap.forEach(function(snap2){
+            if(snap2.val().name !== userName){
+                oppName = snap2.val().name;
+            }
+        });
+    });
+}
+
 //turn listener assignment
 function assignTurn() {
     dataRef.child('data/turns/turn').on("value", function(snap){
@@ -295,7 +313,7 @@ function chatPrint(name, str) {
 function chatUpdate(name, str) {
     let chatBox = $('#chat');
     // chatBox.append('<p>' + name + ': ' + str + '</p>');
-    $('<li>').html(name + ': ' + str).prependTo(chatBox);
+    $('<li>').html('<span class="chatName" style="color:' + nameColor + ';">' + name + ': </span>' + '<span class="chatText" style="color:' + chatTxtColor + ';">' + str + '</span>').prependTo(chatBox);
 }
 
 //this fx returns a random number from 1 - sides, if no arg, sides = 20
@@ -317,6 +335,7 @@ function parseInput(str) {
         } else {
             command = str.slice(1, index)
         }
+        command = command.trim().toLowerCase();
         let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name -new name- : change user name<br>/roll # : rolls a # sided die (if # omitted, # is 20)</span>";
         switch(command) {
             case "name":
@@ -344,6 +363,40 @@ function parseInput(str) {
             break;
             case "help":
                 chatUpdate("System", helpText);
+                return false;
+            break;
+            case "color":
+                let str2 = str.slice(index + 1)
+                str2 = str2.trim();
+                if(str2 !== '/color') {
+                    let space = str2.indexOf(' ');
+                    if(space !== -1) {
+                        let colorTarget = str2.slice(0, space);
+                        let color = str2.slice(space);
+                        switch(colorTarget.toLowerCase()){
+                            case 'name':
+                                nameColor = color;
+                                $('.chatName').css("color", color);
+                            break;
+                            case 'text':
+                                chatTxtColor = color;
+                                $('.chatText').css("color", color);
+                            break;
+                            case 'bg':
+                                $('#chat').css("backgroundColor", color);
+                            break;
+                        }
+                    } else {
+                        let color = str2
+                        nameColor = color;
+                        $('.chatName').css("color", color);
+                        chatTxtColor = color;
+                        $('.chatText').css("color", color);
+                    }
+
+                } else {
+                    chatUpdate("System", "<span id='sysMsg'>Usage: /color 'color' : changes font color<br>/color bg 'color' : changes chat bg color<br>/color name 'color' : changes name color only<br>/color text 'color' : changes text color only</span>");
+                }
                 return false;
             break;
             default:
@@ -418,7 +471,7 @@ function goFish (card) {
     if(index === -1) {
         console.log("go fish");
         drawCard(1);
-        //changeTurn();
+        changeTurn();
     } else {
         oppHand.splice(index, 1);
         let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
@@ -459,6 +512,7 @@ function assignHandListen() {
 
         if(myHand && snap.val()){
             checkPairs();
+            displayCards();
         }
         //console.log("myHand: ", JSON.stringify(myHand));
         //console.log("oppHand: ", JSON.stringify(oppHand));        
@@ -469,6 +523,11 @@ function assignPointListen() {
     dataRef.child('data/goFish/points').on('value', function(snap){
         myPoints = snap.child(userId).val();
         oppPoints = snap.child(opponentId).val();
+        if(snap.child(userId).val()) {
+            $('#points').html(myPoints);
+        } else {
+            $('#points').html('0');            
+        }
     });
 }
 
@@ -494,6 +553,18 @@ src should be attached from the card object image url
 the index of that card in the myHand array should be stored as a data-attribute, eg, $('<img>').attr("data-index", index);
 those img should then be appended to the targetted div, I would suggest btn group
 */
+function displayCards() {
+    $('#btnGrp').empty();
+    for(let i = 0; i < myHand.length; i++) {
+        $('<img>').attr("src", myHand[i].images.png).attr("data-index", i).prependTo('#btnGrp');
+    }   
+}
+$('#btnGrp').on("click", "img", function(){
+    if(myTurn) {
+        let index = this.getAttribute("data-index");
+        goFish(myHand[index]);
+    }
+});
 
 //function to compare cards in player's own hand and remove duplicates, then add points
 function checkPairs() {
