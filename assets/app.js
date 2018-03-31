@@ -513,6 +513,8 @@ function assignHandListen() {
         if(myHand && snap.val()){
             checkPairs();
             displayCards();
+        } else {
+            $('#btnGrp').empty();     
         }
         //console.log("myHand: ", JSON.stringify(myHand));
         //console.log("oppHand: ", JSON.stringify(oppHand));        
@@ -556,7 +558,7 @@ those img should then be appended to the targetted div, I would suggest btn grou
 function displayCards() {
     $('#btnGrp').empty();
     for(let i = 0; i < myHand.length; i++) {
-        $('<img>').attr("src", myHand[i].images.png).attr("data-index", i).prependTo('#btnGrp');
+        $('<img>').attr("src", myHand[i].image).attr("data-index", i).prependTo('#btnGrp');
     }   
 }
 $('#btnGrp').on("click", "img", function(){
