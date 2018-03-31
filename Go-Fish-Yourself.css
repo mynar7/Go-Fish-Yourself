@@ -1,0 +1,105 @@
+.row {background-color:lavender;
+
+}
+small{
+     vertical-align: center;
+}
+ 
+
+.col1{
+    margin:3px;
+    text-align:center;
+    background-color:green;
+    min-height: 150px;
+
+}
+ 
+ 
+.col2{
+    margin:3px;
+    min-height:100px;
+    text-align:center;
+    background-color:red;
+}
+ 
+
+.col3{
+    margin:5px;
+    min-height:100px;
+    text-align:center;
+    background-color:beige;
+    font: bold;
+}
+.col4{
+    margin:5px;
+    min-height:100px;
+    text-align:center;
+    background-color:beige;
+    font: bold;
+}
+
+.text-nowrap{
+    font-size: 14px;
+    margin: 3px;
+   
+
+}
+.col-lg-2{
+    border: solid 2px black ;
+    text-align: center;
+    padding: 3px;
+    min-height: 50px;
+    
+}
+
+#p1Score{
+    text-align: left;
+    font-size: 15px;
+    margin-left: 1px;
+    margin-top: 5px;
+
+
+
+}
+
+#p1Wins{
+    text-align: left;
+    font-size: 15px;
+    margin-left: 1px;
+    margin-top: 10px;
+}
+
+
+#p2Score{
+    text-align: left;
+    font-size: 15px;
+    margin-left: 1px;
+    margin-top: 5px;
+
+
+
+}
+
+#p2Wins{
+    text-align: left;
+    font-size: 15px;
+    margin-left: 6px;
+    margin-top: 10px;
+}
+
+.col-lg-1{
+    border: solid 2px black;
+    min-height: 125px;
+    max-width: 90px;
+    margin: 5px;
+    color: red;
+
+}
+#cardsHere{
+    text-align: center
+}
+
+.col-lg-8{
+    text-align: center;
+    min-height: 300px;
+}
