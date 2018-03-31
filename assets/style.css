@@ -25,7 +25,7 @@ h1 {
     min-height: 80px;
 }
 .btnGrp {
-    width: 100%;
+    max-width: 100%;
     margin-left: 15%;
 }
 .btnGrp button {
