@@ -27,6 +27,8 @@ let deckId;
 let myHand;
 let oppHand;
 let deckEmpty;
+let myPoints;
+let oppPoints;
 
 let nameColor = "yellow";
 let chatTxtColor = "yellow";
@@ -72,8 +74,8 @@ userCons.on("value", function(userList){
                         dataRef.child('chat').onDisconnect().remove();
                         // dataRef.child('players/' + userName).onDisconnect().remove();                        
                         assignChat();
-                        initialScore();
-                        assignScore();
+                        //initialScore();
+                        //assignScore();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
                         //go fish stuff
@@ -81,6 +83,7 @@ userCons.on("value", function(userList){
                         makeDeck();
                         assignHandListen();
                         assignPointListen();
+                        assignGameOver();
 
                         changeTurn();
                         //grab opponent reference
@@ -129,8 +132,8 @@ function makeLobby() {
     con.onDisconnect().remove();
     //clear all lobby data when this user disconnects
     dataRef.child('chat').onDisconnect().remove();
-    initialScore();
-    assignScore();
+    //initialScore();
+    //assignScore();
     assignChat();
     chatPrint(userName, "Started Lobby");
     assignTurn();
@@ -138,6 +141,7 @@ function makeLobby() {
     assignDeckListen();
     assignHandListen();
     assignPointListen();
+    assignGameOver();
 }
 
 //name listener
@@ -209,7 +213,7 @@ $('#btnGrp').on("click", 'button', function(){
     changeTurn();        
 }); //end listener fx
 
-
+/*
 //initialize score
 function initialScore() {
     winCount = 0;
@@ -222,6 +226,7 @@ function initialScore() {
     });
     dataRef.child('data/scores/' + userId).onDisconnect().remove();
 }
+*/
 
 //chat submit button event listener function
 $('#enter').on("click", function(event){
@@ -244,7 +249,7 @@ $('#clear').on("click", function(event){
     event.preventDefault();
     $('#chat').empty();
 });
-
+/*
 //assign a listener to DB scores
 function assignScore() {
     dataRef.child('data/scores').on("value", function(snap){
@@ -276,7 +281,7 @@ function assignScore() {
         });
     });
 }
-
+*/
 function turnNotice() {
     if(myTurn) {
         $('<li>').html("It's your turn.").appendTo("#status");                    
@@ -413,7 +418,8 @@ function parseInput(str) {
 
 //initialize and get a new deck of cards
 function makeDeck() {
-    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH"
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
         method: 'GET'
@@ -471,8 +477,6 @@ function goFish (card) {
     let index;
     index = oppHand.findIndex(x => {return x.value === card.value});
     if(index === -1) {
-        console.log("go fish");
-        //chatPrint(oppName, getInsult());
         getInsult();
         drawCard(1);
         changeTurn();
@@ -506,6 +510,7 @@ function assignDeckListen() {
 
 function assignHandListen() {
     dataRef.child('data/goFish/hands').on('value', function(snap){
+        
         /*
         if(!snap.hasChild(userId) && deckId !== null) {
             drawCard(5);
@@ -520,10 +525,28 @@ function assignHandListen() {
         }
         if(!myHand || !oppHand){
             $('#btnGrp').empty();
-            $('#btnGrp').html("Game Over");  
+            //console.log("yo");
+            //$('#btnGrp').html("Game Over"); 
         }
         //console.log("myHand: ", JSON.stringify(myHand));
         //console.log("oppHand: ", JSON.stringify(oppHand));        
+    });
+}
+function assignGameOver() {
+    dataRef.child('data/goFish/hands').on('child_removed', function(snap){
+        console.log("success");
+        myHand = snap.child(userId).val();
+        oppHand = snap.child(opponentId).val();
+
+        if(!myHand || !oppHand){
+            $('#btnGrp').empty();
+            console.log("Game Over");
+            if(myPoints > oppPoints) {
+                $('#status li').html("You win");
+            } else {
+                $('#status li').html("You lose");                
+            }
+        }
     });
 }
 
@@ -608,7 +631,7 @@ function checkPairs() {
 
 function getInsult() {
     var cors = 'https://cors-anywhere.herokuapp.com/'
-    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=3 id=adj1> <amount> of <adjective min=1 max=3> <animal><animal_part>";
+    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=3 id=adj1> <amount> of <adjective min=1 max=3> <animal> <animal_part>";
     $.ajax({
         url: cors + queryURL,
         method: "GET"
