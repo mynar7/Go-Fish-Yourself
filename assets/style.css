@@ -26,12 +26,17 @@ h1 {
 }
 .btnGrp {
     width: 100%;
+    margin-left: 15%;
 }
 .btnGrp button {
     display: block;
     float: left;
     margin: 0;
     width: 33.33%;
+}
+.btnGrp img {
+    width: 25%;
+    margin-left: -15%;
 }
 .chatWrapper {
     max-width: 400px;
@@ -47,6 +52,14 @@ h1 {
     background-color: black;
     color: yellow;
 }
+#chatName {
+    color: yellow;
+}
+
+#chatText {
+    color: yellow;
+}
+
 #textInput {
     width: 80%;
 }
