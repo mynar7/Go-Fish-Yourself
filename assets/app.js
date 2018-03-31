@@ -466,10 +466,14 @@ function addToHand (arr) {
 }
 
 function goFish (card) {
+    let cardName =  "Got any " + card.value + "'s?";
+    chatPrint(userName, cardName);
     let index;
     index = oppHand.findIndex(x => {return x.value === card.value});
     if(index === -1) {
         console.log("go fish");
+        //chatPrint(oppName, getInsult());
+        getInsult();
         drawCard(1);
         changeTurn();
     } else {
@@ -528,9 +532,15 @@ function assignPointListen() {
         myPoints = snap.child(userId).val();
         oppPoints = snap.child(opponentId).val();
         if(snap.child(userId).val()) {
-            $('#points').html(myPoints);
+            $('#points').html("My pairs:" +myPoints);
         } else {
-            $('#points').html('0');            
+            $('#points').html('');            
+        }
+
+        if(snap.child(opponentId).val()) {
+            $('#oppPoints').html(oppName + "'s pairs: " + oppPoints);
+        } else {
+            $('#oppPoints').html('');            
         }
     });
 }
@@ -559,6 +569,7 @@ those img should then be appended to the targetted div, I would suggest btn grou
 */
 function displayCards() {
     $('#btnGrp').empty();
+    //if img 
     if(myHand) {
         for(let i = 0; i < myHand.length; i++) {
             $('<img>').attr("src", myHand[i].images.png).attr("data-index", i).prependTo('#btnGrp');
@@ -594,3 +605,18 @@ function checkPairs() {
         
     }
 }
+
+function getInsult() {
+    var cors = 'https://cors-anywhere.herokuapp.com/'
+    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=3 id=adj1> <amount> of <adjective min=1 max=3> <animal><animal_part>";
+    $.ajax({
+        url: cors + queryURL,
+        method: "GET"
+    })
+    .then(function(response) {
+        if(response) {
+            chatPrint(oppName, response.insult);
+        }
+    })
+ 
+ }
