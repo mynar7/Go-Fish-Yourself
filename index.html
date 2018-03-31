@@ -7,15 +7,38 @@
     <title>Go Fish!</title>
     <link rel="stylesheet" href="./assets/reset.css">
     <link rel="stylesheet" href="./assets/style.css">
+    <link href="assets/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <header><h1>GO FISH YOURSELF</h1></header>
     <div class="content">
+        
         <div class="rps" id="rps">
-            <ul class="score" id="score">
-                <li id="wins"></li>
-                <li id="losses"></li>
-                <li id="draws"></li>
+        
+           
+     <ul class="score" id="score">
+          <div class="container"> 
+
+            <div class = "row">
+
+                <div class="col-sm-4">
+                    <ul id="wins"></ul>
+                </div>
+                    
+                
+                <div class="col-sm-4">
+                    <ul id="losses"></ul>
+                </div>
+                
+
+                <div class="col-sm-4">
+                    <ul id="draws"></ul>
+                </div>
+          
+                
+            </div>
+        </div>
+
             </ul><!--end score-->
             <p>Points: <span id="points"></span></p>
             <ul id="status" class="status">
