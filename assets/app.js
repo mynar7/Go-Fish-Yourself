@@ -541,11 +541,17 @@ function assignGameOver() {
         if(!myHand || !oppHand){
             $('#btnGrp').empty();
             console.log("Game Over");
-            if(myPoints > oppPoints) {
-                $('#status li').html("You win");
-            } else {
-                $('#status li').html("You lose");                
-            }
+            dataRef.child('data/goFish/points').once('value', function(snap) {
+                myPoints = snap.child(userId).val();
+                oppPoints = snap.child(opponentId).val();
+                if(myPoints > oppPoints) {
+                    $('#status li').html("You win");
+                } else if (myPoints < oppPoints){
+                    $('#status li').html("You lose");            
+                } else {
+                    $('#status li').html("You tied");                            
+                }
+            });//end dataref
         }
     });
 }
@@ -608,25 +614,24 @@ $('#btnGrp').on("click", "img", function(){
 
 //function to compare cards in player's own hand and remove duplicates, then add points
 function checkPairs() {
-    for (let index = 0; index < myHand.length; index++) {
-        let arr = myHand.slice();
-        let searchCard = arr.splice(index, 1);
-        //console.log("card: ", JSON.stringify(searchCard));
-        //console.log("value: ", searchCard[0].value);
-        //console.log("hand: ", JSON.stringify(arr));
-        let match = arr.findIndex(x => {return x.value === searchCard[0].value});
-
-        if(match > -1) {
-            //console.log("match!!");
-            arr.splice(match, 1);
-            myHand = arr;
-            updateHands();
-            addPoint();
-        } else {
-            //console.log("no match");
-        }
-        
-    }
+    if(myHand) {
+        for (let index = 0; index < myHand.length; index++) {
+            let arr = myHand.slice();
+            let searchCard = arr.splice(index, 1);
+            //console.log("card: ", JSON.stringify(searchCard));
+            //console.log("value: ", searchCard[0].value);
+            //console.log("hand: ", JSON.stringify(arr));
+            let match = arr.findIndex(x => {return x.value === searchCard[0].value});
+            
+            if(match > -1) {
+                //console.log("match!!");
+                arr.splice(match, 1);
+                myHand = arr;
+                updateHands();
+                addPoint();
+            }
+        }//end for
+    } //end if myHand
 }
 
 function getInsult() {
