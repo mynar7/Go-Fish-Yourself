@@ -1,3 +1,4 @@
+$(document).ready(function () {
 // Initialize Firebase
 var config = {
     apiKey: "AIzaSyBBflwDizYQNO2MpD9EpXzrgWUo1fmctCQ",
@@ -418,8 +419,8 @@ function parseInput(str) {
 
 //initialize and get a new deck of cards
 function makeDeck() {
-    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH"
-    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H,3S,3D,3C"
+    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
         method: 'GET'
@@ -445,7 +446,10 @@ function drawCard(num) {
             if(resp.remaining === 0) {
                 deckEmpty = true;
             }
-        addToHand(resp.cards);
+            if(resp.cards.length === 1){
+                chatUpdate("System", "You drew a " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase());
+            }
+            addToHand(resp.cards);
         } else {
             deckEmpty = true;
             if(resp.cards.length > 0){
@@ -472,19 +476,23 @@ function addToHand (arr) {
 }
 
 function goFish (card) {
-    let cardName =  "Got any " + card.value + "'s?";
+    let cardName =  "Got any " + card.value.toLowerCase() + "s?";
     chatPrint(userName, cardName);
     let index;
     index = oppHand.findIndex(x => {return x.value === card.value});
     if(index === -1) {
+        myTurn = false;
         getInsult();
-        drawCard(1);
-        changeTurn();
+        setTimeout(()=>{
+            drawCard(1)
+            changeTurn();
+        }, 1500);
     } else {
-        oppHand.splice(index, 1);
+        let foundCard = oppHand.splice(index, 1);
         let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
         myHand.splice(myCardIndex, 1);
         addPoint();
+        chatUpdate("System", "Received a " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from opponent.");
     }
     updateHands();
 }
@@ -534,13 +542,12 @@ function assignHandListen() {
 }
 function assignGameOver() {
     dataRef.child('data/goFish/hands').on('child_removed', function(snap){
-        console.log("success");
         myHand = snap.child(userId).val();
         oppHand = snap.child(opponentId).val();
 
         if(!myHand || !oppHand){
             $('#btnGrp').empty();
-            console.log("Game Over");
+            //console.log("Game Over");
             dataRef.child('data/goFish/points').once('value', function(snap) {
                 myPoints = snap.child(userId).val();
                 oppPoints = snap.child(opponentId).val();
@@ -625,10 +632,11 @@ function checkPairs() {
             
             if(match > -1) {
                 //console.log("match!!");
-                arr.splice(match, 1);
+                let matchingCard = arr.splice(match, 1);
                 myHand = arr;
                 updateHands();
                 addPoint();
+                chatUpdate("System", "You paired the " + matchingCard[0].value.toLowerCase() + " of " + matchingCard[0].suit.toLowerCase() + " and the " + searchCard[0].value.toLowerCase() + " of " + searchCard[0].suit.toLowerCase() + " in your hand");
             }
         }//end for
     } //end if myHand
@@ -636,7 +644,7 @@ function checkPairs() {
 
 function getInsult() {
     var cors = 'https://cors-anywhere.herokuapp.com/'
-    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=3 id=adj1> <amount> of <adjective min=1 max=3> <animal> <animal_part>";
+    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=2 id=adj1> <amount> of <adjective min=1 max=2> <animal> <animal_part>";
     $.ajax({
         url: cors + queryURL,
         method: "GET"
@@ -648,3 +656,5 @@ function getInsult() {
     })
  
  }
+
+});//doc ready
