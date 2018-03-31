@@ -1,3 +1,7 @@
+body {
+    background-image: url("images/aquarium-plants.jpg");
+}
+
 header {
     width: 100%;
     text-align: center;
