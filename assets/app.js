@@ -300,8 +300,13 @@ function assignChat() {
         //if statement removes opponent DC console error
         if(snap.val()) {
             chatUpdate(snap.val().msgBy, snap.val().lastMsg);
-            if(snap.val().insults !== insult) {
+            if(snap.val().insults != insult) {
                 insult = snap.val().insults;
+                if(insult) {
+                    $('header h1').html("GO FISH YOURSELF");                                        
+                } else {
+                    $('header h1').html("GO FISH");                    
+                }
             }
         } else {
             //use that null error to print a disconnect
@@ -386,13 +391,9 @@ function parseInput(str) {
             break;
             case "insult":
                 if(insult){
-                    insult = false;
                     chatPrint("System", "<span id='sysMsg'>" + userName + " turned insults off.</span>", false);
-                    $('header h1').html("GO FISH");
                 } else {
-                    insult = true;
                     chatPrint("System", "<span id='sysMsg'>" + userName + " turned insults on.</span>", true);
-                    $('header h1').html("GO FISH YOURSELF");                    
                 }
             return false;
             break;
