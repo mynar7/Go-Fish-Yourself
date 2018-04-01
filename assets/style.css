@@ -17,6 +17,7 @@ h1 {
     margin: auto;
     background-color: rgb(4,102,212);
     min-height: 160px;
+    z-index: 99;
 }
 .score {
     margin: 10px;
@@ -51,6 +52,7 @@ h1 {
     flex-direction: column-reverse;
     background-color: black;
     color: yellow;
+    z-index: 99;
 }
 #chatName {
     color: yellow;
