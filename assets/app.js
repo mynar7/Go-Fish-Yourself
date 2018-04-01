@@ -510,7 +510,7 @@ function goFish (card) {
         if(insult){
             getInsult();
         } else {
-            setTimeout(()=>{chatPrint(userName, "Go Fish.")}, 1000);
+            setTimeout(()=>{chatPrint(oppName, "Go Fish.")}, 1000);
         }
         setTimeout(()=>{
             drawCard(1)
