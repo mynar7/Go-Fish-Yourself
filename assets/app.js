@@ -473,7 +473,7 @@ function drawCard(num) {
                 deckEmpty = true;
             }
             if(resp.cards.length === 1){
-                chatUpdate("System", "You drew a " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase());
+                chatUpdate("System", "You drew the " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase());
             }
             addToHand(resp.cards);
         } else {
@@ -522,7 +522,7 @@ function goFish (card) {
         let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
         myHand.splice(myCardIndex, 1);
         addPoint();
-        chatUpdate("System", "Received a " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName);
+        chatPrint("System", userName + " received the " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName);
     }
     updateHands();
 }
