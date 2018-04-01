@@ -71,3 +71,8 @@ h1 {
     color: red;
     font-weight: 900;
 }
+
+.row{
+   width: 100%;
+background-color: blueviolet;
+}
