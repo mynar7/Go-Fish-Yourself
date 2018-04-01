@@ -206,7 +206,7 @@ html, body {
 
 
 @media only screen and (max-width: 420px) {
-    .fish, .fish2, .fish3 {
+    .boat, .fish2, .fish3 {
         display: none;
     }
 
