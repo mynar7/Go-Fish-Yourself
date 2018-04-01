@@ -72,6 +72,27 @@ html, body {
     height: 40px;
 }
 
+.shark_chase {
+    display: block;
+    opacity: 0;
+    width: 161px;
+    height: 100px;
+    position: absolute;
+    top: 50%;
+    right: 0%;
+    animation-name: shark_chase;
+    animation-duration: 80s;
+    animation-delay: 60s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    animation-direction: normal;
+}
+
+.shark_chase img {
+    width: 161px;
+    height: 100px;
+}
+
 .bubble {
     bottom: -10px;
     opacity: 1;
@@ -165,6 +186,15 @@ html, body {
     75% {top: 15%; left: 20%; transform: scaleX(-1);}
     75.1% {top: 14.9%; left: 19%; transform: scaleX(1);}
     100% {top: 7%; left: -10%;}
+}
+
+@keyframes shark_chase {
+    0% {opacity: 1; top: 50%; right: -10px;}
+    2.5% {opacity: 1; top: 60%; right: 25%;; transform: rotate(35deg);}
+    5% {opacity: 1; top: 40%; right: 50%; transform: rotate(10deg);}
+    7.5% {opacity: 1; top: 55%; right: 75%; transform: rotate(35deg);}
+    10% {opacity: 1; top: 40%; right: 100%; transform: rotate(10deg);}
+    100% {opacity: 0; top: 40%; right: 100%; transform: rotate(30deg);}
 }
 
 @keyframes air-bubble-small {
