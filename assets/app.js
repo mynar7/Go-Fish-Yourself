@@ -1,3 +1,4 @@
+$(document).ready(function () {
 // Initialize Firebase
 var config = {
     apiKey: "AIzaSyBBflwDizYQNO2MpD9EpXzrgWUo1fmctCQ",
@@ -29,6 +30,7 @@ let oppHand;
 let deckEmpty;
 let myPoints;
 let oppPoints;
+let insult = false;
 
 let nameColor = "yellow";
 let chatTxtColor = "yellow";
@@ -78,6 +80,7 @@ userCons.on("value", function(userList){
                         //assignScore();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
+                        chatUpdate("System", "<span id=sysMsg>Type /help for list of commands</span>");
                         //go fish stuff
                         assignDeckListen();
                         makeDeck();
@@ -136,6 +139,7 @@ function makeLobby() {
     //assignScore();
     assignChat();
     chatPrint(userName, "Started Lobby");
+    chatUpdate("System", "<span id=sysMsg>Type /help for list of commands</span>");    
     assignTurn();
     //go fish fxs
     assignDeckListen();
@@ -296,6 +300,14 @@ function assignChat() {
         //if statement removes opponent DC console error
         if(snap.val()) {
             chatUpdate(snap.val().msgBy, snap.val().lastMsg);
+            if(snap.val().insults != insult) {
+                insult = snap.val().insults;
+                if(insult) {
+                    $('header h1').html("GO FISH YOURSELF");                                        
+                } else {
+                    $('header h1').html("GO FISH");                    
+                }
+            }
         } else {
             //use that null error to print a disconnect
             chatUpdate("System", "<span id='sysMsg'>player disconnected</span>");
@@ -304,12 +316,19 @@ function assignChat() {
 }
 
 //parse for commands, if not command, send to database to be read
-function chatPrint(name, str) {
+function chatPrint(name, str, bool) {
     str = parseInput(str);
-    if(str !== false) {
+    if(str !== false && arguments.length === 2) {
         dataRef.child('chat').update({
             lastMsg: str,
             msgBy: name
+        });
+    }
+    if(str !== false && arguments.length === 3) {
+        dataRef.child('chat').update({
+            lastMsg: str,
+            msgBy: name,
+            insults: bool
         });
     }//end if
 }
@@ -341,7 +360,7 @@ function parseInput(str) {
             command = str.slice(1, index)
         }
         command = command.trim().toLowerCase();
-        let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name -new name- : change user name<br>/roll # : rolls a # sided die (if # omitted, # is 20)</span>";
+        let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name newName : change user name<br>/insult : toggle insults on/off<br>/roll # : rolls a # sided die (if # omitted, # is 20)</span>";
         switch(command) {
             case "name":
                 let newName = str.slice(index + 1);
@@ -369,6 +388,14 @@ function parseInput(str) {
             case "help":
                 chatUpdate("System", helpText);
                 return false;
+            break;
+            case "insult":
+                if(insult){
+                    chatPrint("System", "<span id='sysMsg'>" + userName + " turned insults off.</span>", false);
+                } else {
+                    chatPrint("System", "<span id='sysMsg'>" + userName + " turned insults on.</span>", true);
+                }
+            return false;
             break;
             case "color":
                 let str2 = str.slice(index + 1)
@@ -418,8 +445,8 @@ function parseInput(str) {
 
 //initialize and get a new deck of cards
 function makeDeck() {
-    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH"
-    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H,3S,3D,3C"
+    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
         method: 'GET'
@@ -445,7 +472,10 @@ function drawCard(num) {
             if(resp.remaining === 0) {
                 deckEmpty = true;
             }
-        addToHand(resp.cards);
+            if(resp.cards.length === 1){
+                chatUpdate("System", "You drew a " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase());
+            }
+            addToHand(resp.cards);
         } else {
             deckEmpty = true;
             if(resp.cards.length > 0){
@@ -472,19 +502,27 @@ function addToHand (arr) {
 }
 
 function goFish (card) {
-    let cardName =  "Got any " + card.value + "'s?";
+    let cardName =  "Got any " + card.value.toLowerCase() + "s?";
     chatPrint(userName, cardName);
     let index;
     index = oppHand.findIndex(x => {return x.value === card.value});
     if(index === -1) {
-        getInsult();
-        drawCard(1);
-        changeTurn();
+        myTurn = false;
+        if(insult){
+            getInsult();
+        } else {
+            setTimeout(()=>{chatPrint(oppName, "Go Fish.")}, 1000);
+        }
+        setTimeout(()=>{
+            drawCard(1)
+            changeTurn();
+        }, 1500);
     } else {
-        oppHand.splice(index, 1);
+        let foundCard = oppHand.splice(index, 1);
         let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
         myHand.splice(myCardIndex, 1);
         addPoint();
+        chatUpdate("System", "Received a " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName);
     }
     updateHands();
 }
@@ -534,13 +572,12 @@ function assignHandListen() {
 }
 function assignGameOver() {
     dataRef.child('data/goFish/hands').on('child_removed', function(snap){
-        console.log("success");
         myHand = snap.child(userId).val();
         oppHand = snap.child(opponentId).val();
 
         if(!myHand || !oppHand){
             $('#btnGrp').empty();
-            console.log("Game Over");
+            //console.log("Game Over");
             dataRef.child('data/goFish/points').once('value', function(snap) {
                 myPoints = snap.child(userId).val();
                 oppPoints = snap.child(opponentId).val();
@@ -625,10 +662,11 @@ function checkPairs() {
             
             if(match > -1) {
                 //console.log("match!!");
-                arr.splice(match, 1);
+                let matchingCard = arr.splice(match, 1);
                 myHand = arr;
                 updateHands();
                 addPoint();
+                chatUpdate("System", "You paired the " + matchingCard[0].value.toLowerCase() + " of " + matchingCard[0].suit.toLowerCase() + " and the " + searchCard[0].value.toLowerCase() + " of " + searchCard[0].suit.toLowerCase() + " in your hand");
             }
         }//end for
     } //end if myHand
@@ -636,7 +674,7 @@ function checkPairs() {
 
 function getInsult() {
     var cors = 'https://cors-anywhere.herokuapp.com/'
-    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=3 id=adj1> <amount> of <adjective min=1 max=3> <animal> <animal_part>";
+    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=1 id=adj1> <amount> of <adjective min=1 max=1> <animal> <animal_part>";
     $.ajax({
         url: cors + queryURL,
         method: "GET"
@@ -648,3 +686,5 @@ function getInsult() {
     })
  
  }
+
+});//doc ready
