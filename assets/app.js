@@ -30,6 +30,7 @@ let oppHand;
 let deckEmpty;
 let myPoints;
 let oppPoints;
+let insult = false;
 
 let nameColor = "yellow";
 let chatTxtColor = "yellow";
@@ -79,6 +80,7 @@ userCons.on("value", function(userList){
                         //assignScore();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
+                        chatUpdate("System", "<span id=sysMsg>Type /help for list of commands</span>");
                         //go fish stuff
                         assignDeckListen();
                         makeDeck();
@@ -137,6 +139,7 @@ function makeLobby() {
     //assignScore();
     assignChat();
     chatPrint(userName, "Started Lobby");
+    chatUpdate("System", "<span id=sysMsg>Type /help for list of commands</span>");    
     assignTurn();
     //go fish fxs
     assignDeckListen();
@@ -297,6 +300,9 @@ function assignChat() {
         //if statement removes opponent DC console error
         if(snap.val()) {
             chatUpdate(snap.val().msgBy, snap.val().lastMsg);
+            if(snap.val().insults !== insult) {
+                insult = snap.val().insults;
+            }
         } else {
             //use that null error to print a disconnect
             chatUpdate("System", "<span id='sysMsg'>player disconnected</span>");
@@ -305,12 +311,19 @@ function assignChat() {
 }
 
 //parse for commands, if not command, send to database to be read
-function chatPrint(name, str) {
+function chatPrint(name, str, bool) {
     str = parseInput(str);
-    if(str !== false) {
+    if(str !== false && arguments.length === 2) {
         dataRef.child('chat').update({
             lastMsg: str,
             msgBy: name
+        });
+    }
+    if(str !== false && arguments.length === 3) {
+        dataRef.child('chat').update({
+            lastMsg: str,
+            msgBy: name,
+            insults: bool
         });
     }//end if
 }
@@ -342,7 +355,7 @@ function parseInput(str) {
             command = str.slice(1, index)
         }
         command = command.trim().toLowerCase();
-        let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name -new name- : change user name<br>/roll # : rolls a # sided die (if # omitted, # is 20)</span>";
+        let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name newName : change user name<br>/insult : toggle insults on/off<br>/roll # : rolls a # sided die (if # omitted, # is 20)</span>";
         switch(command) {
             case "name":
                 let newName = str.slice(index + 1);
@@ -370,6 +383,18 @@ function parseInput(str) {
             case "help":
                 chatUpdate("System", helpText);
                 return false;
+            break;
+            case "insult":
+                if(insult){
+                    insult = false;
+                    chatPrint("System", "<span id='sysMsg'>" + userName + " turned insults off.</span>", false);
+                    $('header h1').html("GO FISH");
+                } else {
+                    insult = true;
+                    chatPrint("System", "<span id='sysMsg'>" + userName + " turned insults on.</span>", true);
+                    $('header h1').html("GO FISH YOURSELF");                    
+                }
+            return false;
             break;
             case "color":
                 let str2 = str.slice(index + 1)
@@ -482,7 +507,11 @@ function goFish (card) {
     index = oppHand.findIndex(x => {return x.value === card.value});
     if(index === -1) {
         myTurn = false;
-        getInsult();
+        if(insult){
+            getInsult();
+        } else {
+            setTimeout(()=>{chatPrint(userName, "Go Fish.")}, 1000);
+        }
         setTimeout(()=>{
             drawCard(1)
             changeTurn();
@@ -492,7 +521,7 @@ function goFish (card) {
         let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
         myHand.splice(myCardIndex, 1);
         addPoint();
-        chatUpdate("System", "Received a " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from opponent.");
+        chatUpdate("System", "Received a " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName);
     }
     updateHands();
 }
@@ -644,7 +673,7 @@ function checkPairs() {
 
 function getInsult() {
     var cors = 'https://cors-anywhere.herokuapp.com/'
-    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=2 id=adj1> <amount> of <adjective min=1 max=2> <animal> <animal_part>";
+    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=1 id=adj1> <amount> of <adjective min=1 max=1> <animal> <animal_part>";
     $.ajax({
         url: cors + queryURL,
         method: "GET"
