@@ -2,11 +2,18 @@ header {
     width: 100%;
     text-align: center;
     padding: 10px 0;
+    margin-top: 20px;
 }
 h1 {
-    font-weight: bolder;
-    font-size: 1.5em;
-}
+    color: #CEF0D4; 
+    font-family: 'Rouge Script', cursive; 
+    font-size: 100px; 
+    font-weight: normal; 
+    line-height: 48px; 
+    margin: 0 0 50px; 
+    text-align: center; 
+    text-shadow: 1px 1px 2px #082b34; }
+
 .content {
     max-width: 960px;
     margin: auto;
@@ -68,4 +75,15 @@ h1 {
 #sysMsg {
     color: red;
     font-weight: 900;
+}
+
+
+
+
+
+@media only screen and (max-width: 1013px) {
+    h1 {
+        font-size: 60px;
+    }
+
 }
