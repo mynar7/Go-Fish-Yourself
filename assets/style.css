@@ -1,16 +1,32 @@
+html {
+    background: url("images/aquarium-plants.jpg");
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.body-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
 header {
     width: 100%;
     text-align: center;
-    padding: 10px 0;
     margin-top: 20px;
 }
+
 h1 {
     color: #CEF0D4; 
     font-family: 'Rouge Script', cursive; 
-    font-size: 100px; 
+    font-size: 60px; 
     font-weight: normal; 
     line-height: 48px; 
-    margin: 0 0 50px; 
+    margin: 0 0 20px; 
     text-align: center; 
     text-shadow: 1px 1px 2px #082b34; }
 
@@ -77,13 +93,19 @@ h1 {
     font-weight: 900;
 }
 
-
-
-
-
 @media only screen and (max-width: 1013px) {
     h1 {
         font-size: 60px;
+    }
+
+}
+
+@media only screen and (max-width: 420px) {
+    .boat, .fish2, .fish3 {
+        display: none;
+    }
+    h1 {
+        font-size: 40px;
     }
 
 }

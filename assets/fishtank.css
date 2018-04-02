@@ -1,16 +1,4 @@
-html, body {
-    width: 100%;
-    height: 100%;
-    background: url("images/aquarium-plants.jpg");
-    z-index: 0;
-}
 
-.body-wrapper {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    
-}
 
 .boat {
     display: block;
@@ -72,7 +60,7 @@ html, body {
     height: 40px;
 }
 
-.shark_chase {
+/* .shark_chase {
     display: block;
     opacity: 0;
     width: 161px;
@@ -91,7 +79,7 @@ html, body {
 .shark_chase img {
     width: 161px;
     height: 100px;
-}
+} */
 
 .bubble {
     bottom: -10px;
@@ -188,14 +176,14 @@ html, body {
     100% {top: 7%; left: -10%;}
 }
 
-@keyframes shark_chase {
+/* @keyframes shark_chase {
     0% {opacity: 1; top: 50%; right: -10px;}
     2.5% {opacity: 1; top: 60%; right: 25%;; transform: rotate(35deg);}
     5% {opacity: 1; top: 40%; right: 50%; transform: rotate(10deg);}
     7.5% {opacity: 1; top: 55%; right: 75%; transform: rotate(35deg);}
     10% {opacity: 1; top: 40%; right: 100%; transform: rotate(10deg);}
     100% {opacity: 0; top: 40%; right: 100%; transform: rotate(30deg);}
-}
+} */
 
 @keyframes air-bubble-small {
     0% {
@@ -244,9 +232,3 @@ html, body {
 }
 
 
-@media only screen and (max-width: 420px) {
-    .boat, .fish2, .fish3 {
-        display: none;
-    }
-
-}
