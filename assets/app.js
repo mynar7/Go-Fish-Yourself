@@ -76,15 +76,14 @@ userCons.on("value", function(userList){
                         dataRef.child('chat').onDisconnect().remove();
                         // dataRef.child('players/' + userName).onDisconnect().remove();                        
                         assignChat();
-                        //initialScore();
-                        //assignScore();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
                         chatUpdate("System", "<span id=sysMsg>Type /help for list of commands</span>");
                         //go fish stuff
                         assignDeckListen();
                         makeDeck();
-                        assignHandListen();
+                        assignMyHandListen();
+                        assignOppHandListen();
                         assignPointListen();
                         assignGameOver();
 
@@ -135,15 +134,14 @@ function makeLobby() {
     con.onDisconnect().remove();
     //clear all lobby data when this user disconnects
     dataRef.child('chat').onDisconnect().remove();
-    //initialScore();
-    //assignScore();
     assignChat();
     chatPrint(userName, "Started Lobby");
     chatUpdate("System", "<span id=sysMsg>Type /help for list of commands</span>");    
     assignTurn();
     //go fish fxs
     assignDeckListen();
-    assignHandListen();
+    assignMyHandListen();
+    assignOppHandListen();    
     assignPointListen();
     assignGameOver();
 }
@@ -169,13 +167,13 @@ function assignTurn() {
             //if this client's userId, set var myTurn true, else false
             myTurn = true;
             $('#status').empty();
-            $('<li>').html("It's your turn.").appendTo("#status");
+            turnNotice();
         } else {
             myTurn = false;
             opponentId = x;
+            $('#status').empty();
+            turnNotice();
         }
-        //run function to enable/disable RPS buttons based on myTurn boolean
-        toggleButtons(myTurn);
     });
     dataRef.child('data/turns').onDisconnect().remove();
 }
@@ -192,45 +190,6 @@ function changeTurn () {
         turn: x,
     });
 }
-
-
-//this fx toggles the client's RPS buttons on/off
-function toggleButtons(bool) {
-    if(bool) {
-        var x = document.getElementById("btnGrp").querySelectorAll('button');
-        for (i = 0; i < x.length; i++) {
-            x[i].removeAttribute("disabled");
-        }
-    } else {
-        if(opponentId) {
-            $('#status').empty();
-            $('<li>').html("Waiting for Opponent.").appendTo("#status");                    
-        }
-        var x = document.getElementById("btnGrp").querySelectorAll('button');
-        for (i = 0; i < x.length; i++) {
-            x[i].setAttribute("disabled", "true");
-        }
-    }
-}
-//button listener
-$('#btnGrp').on("click", 'button', function(){
-    changeTurn();        
-}); //end listener fx
-
-/*
-//initialize score
-function initialScore() {
-    winCount = 0;
-    lossCount = 0;
-    drawCount = 0;
-    dataRef.child('data/scores/' + userId).update({
-        wins: 0,
-        losses: 0,
-        draws: 0
-    });
-    dataRef.child('data/scores/' + userId).onDisconnect().remove();
-}
-*/
 
 //chat submit button event listener function
 $('#enter').on("click", function(event){
@@ -253,39 +212,7 @@ $('#clear').on("click", function(event){
     event.preventDefault();
     $('#chat').empty();
 });
-/*
-//assign a listener to DB scores
-function assignScore() {
-    dataRef.child('data/scores').on("value", function(snap){
-        $('#status').empty();
-        snap.forEach(function(snapChild){
-            if(snapChild.key == userId) {
-                let wins = snapChild.val().wins;
-                let losses = snapChild.val().losses;
-                let draws = snapChild.val().draws;
-                $('#wins').html("Wins: " + wins);
-                $('#losses').html("Losses: " + losses);
-                $('#draws').html("Draws: " + draws);
-                if(winCount !== wins) {
-                    $('<li>').html("You won!").appendTo("#status");
-                    turnNotice();
-                }
-                if(lossCount !== losses) {
-                    $('<li>').html("You lost!").appendTo("#status");
-                    turnNotice();
-                }
-                if(drawCount !== draws) {
-                    $('<li>').html("It was a draw!").appendTo("#status");
-                    turnNotice();
-                }
-                winCount = wins;
-                lossCount = losses;
-                drawCount = draws;
-            }
-        });
-    });
-}
-*/
+
 function turnNotice() {
     if(myTurn) {
         $('<li>').html("It's your turn.").appendTo("#status");                    
@@ -445,7 +372,8 @@ function parseInput(str) {
 
 //initialize and get a new deck of cards
 function makeDeck() {
-    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H,3S,3D,3C"
+    //debug query for a quick game
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH"
     let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
@@ -473,7 +401,7 @@ function drawCard(num) {
                 deckEmpty = true;
             }
             if(resp.cards.length === 1){
-                chatUpdate("System", "You drew a " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase());
+                chatUpdate("System", "You drew the " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase());
             }
             addToHand(resp.cards);
         } else {
@@ -482,23 +410,21 @@ function drawCard(num) {
                 addToHand(resp.cards);
             }
         }//end else
+        displayCards()               
+        setTimeout(()=>{
+            checkPairs();
+            updateMyHand();
+        }, 500);
     }); //end ajax
 }
 
 //takes an array of objects, adds array to user's hand of cards
 function addToHand (arr) {
-    dataRef.child('data/goFish/hands').once("value", function(snap){
-        if(!snap.hasChild(userId) || snap.val().length === 0) {
-            dataRef.child('data/goFish/hands').update({
-                [userId]: arr
-            });
-        } else {
-            // console.log("add: ", snap.val().hand);
-            dataRef.child('data/goFish/hands').update({
-                [userId]: snap.child(userId).val().concat(arr)
-            });
-        }
-    });
+   if(!myHand){
+       myHand = arr;
+   } else {
+        myHand = myHand.concat(arr);
+   }
 }
 
 function goFish (card) {
@@ -515,22 +441,29 @@ function goFish (card) {
         }
         setTimeout(()=>{
             drawCard(1)
-            changeTurn();
+            changeTurn();          
         }, 1500);
     } else {
         let foundCard = oppHand.splice(index, 1);
         let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
         myHand.splice(myCardIndex, 1);
-        addPoint();
-        chatUpdate("System", "Received a " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName);
+        addPoint(1);
+        chatPrint("System", userName + " received the " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName);
+        updateHands();
     }
-    updateHands();
 }
 
+//update both hands
 function updateHands () {
+        dataRef.child('data/goFish/hands').update({
+            [userId]: myHand,
+            [opponentId]: oppHand
+        });
+}
+//update only my hand
+function updateMyHand() {
     dataRef.child('data/goFish/hands').update({
         [userId]: myHand,
-        [opponentId]: oppHand
     });
 }
 
@@ -546,37 +479,28 @@ function assignDeckListen() {
     dataRef.child('data/goFish').onDisconnect().remove();    
 }
 
-function assignHandListen() {
-    dataRef.child('data/goFish/hands').on('value', function(snap){
-        
-        /*
-        if(!snap.hasChild(userId) && deckId !== null) {
-            drawCard(5);
-        }
-        */
-        myHand = snap.child(userId).val();
-        oppHand = snap.child(opponentId).val();
-
-        if(myHand && snap.val()){
-            checkPairs();
+function assignMyHandListen() {
+    dataRef.child('data/goFish/hands').child(userId).on('value', function(snap){
+            myHand = snap.val();
             displayCards();
-        }
-        if(!myHand || !oppHand){
-            $('#btnGrp').empty();
-            //console.log("yo");
-            //$('#btnGrp').html("Game Over"); 
-        }
-        //console.log("myHand: ", JSON.stringify(myHand));
-        //console.log("oppHand: ", JSON.stringify(oppHand));        
     });
 }
+
+function assignOppHandListen() {
+    dataRef.child('data/goFish/hands').on('value', function(snap){
+        oppHand = snap.child(opponentId).val();
+    });
+}
+
 function assignGameOver() {
     dataRef.child('data/goFish/hands').on('child_removed', function(snap){
         myHand = snap.child(userId).val();
         oppHand = snap.child(opponentId).val();
-
+        
         if(!myHand || !oppHand){
-            $('#btnGrp').empty();
+            $('#btnGrp img').fadeOut(500,()=>{
+                $('#btnGrp').empty();
+            });
             //console.log("Game Over");
             dataRef.child('data/goFish/points').once('value', function(snap) {
                 myPoints = snap.child(userId).val();
@@ -598,7 +522,7 @@ function assignPointListen() {
         myPoints = snap.child(userId).val();
         oppPoints = snap.child(opponentId).val();
         if(snap.child(userId).val()) {
-            $('#points').html("My pairs:" +myPoints);
+            $('#points').html("My pairs:" + myPoints);
         } else {
             $('#points').html('');            
         }
@@ -611,46 +535,75 @@ function assignPointListen() {
     });
 }
 
-function addPoint () {
+function addPoint (num) {
     dataRef.child('data/goFish/points').once("value", function(snap){
         if(!snap.hasChild(userId)) {
             dataRef.child('data/goFish/points').update({
-                [userId]: 1
+                [userId]: num
             });
         } else {
             // console.log("add: ", snap.val().hand);
             dataRef.child('data/goFish/points').update({
-                [userId]: snap.child(userId).val() + 1
+                [userId]: snap.child(userId).val() + num
             });
         }
     });
 }
 
-//function to display hand
-/*
-this function should take myHand and iterate over it, making an <img> for each cardObject in myHand array
-src should be attached from the card object image url
-the index of that card in the myHand array should be stored as a data-attribute, eg, $('<img>').attr("data-index", index);
-those img should then be appended to the targetted div, I would suggest btn group
-*/
 function displayCards() {
-    $('#btnGrp').empty();
-    //if img 
-    if(myHand) {
+    let inHand;
+    let onPage;
+    if(myHand && $('#btnGrp').children().length > 0) {
+        $('#btnGrp').children().each(function(index){
+            inHand = false;
+            for(let i = 0; i < myHand.length; i++){
+                if($(this).attr("data-code") == myHand[i].code){
+                    inHand = true;
+                    break;
+                }//end if
+            }//end for
+            if(!inHand) {
+                $(this).fadeOut(500, function(){
+                    $(this).remove();
+                });
+            }//end if
+        });//end each
         for(let i = 0; i < myHand.length; i++) {
-            $('<img>').attr("src", myHand[i].images.png).attr("data-index", i).prependTo('#btnGrp');
-        }   
-    }
-}
+            onPage = false;
+            $('#btnGrp').children().each(function(index){
+                if(myHand[i].code == $(this).attr("data-code")) {
+                    onPage = true;
+                }
+            });//end .each
+            if(!onPage){
+                let img = $('<img>').attr("src", myHand[i].images.png).hide().attr("data-code", myHand[i].code).appendTo('#btnGrp');
+                img.fadeIn();
+            }
+        }//end for
+    }//end outer if
+    
+    if(myHand && $('#btnGrp').children().length == 0) {
+        for(let i = 0; i < myHand.length; i++) {
+            let img = $('<img>').attr("src", myHand[i].images.png).hide().attr("data-code", myHand[i].code).appendTo('#btnGrp');
+            img.fadeIn();
+        }//end for
+    }//end if
+}//end fx
+
+//assign click listener to card images to perform goFish
 $('#btnGrp').on("click", "img", function(){
     if(myTurn) {
-        let index = this.getAttribute("data-index");
-        goFish(myHand[index]);
+        let code = $(this).attr("data-code");
+        let index = myHand.findIndex(x => {return code == x.code});
+        if(index > -1) {
+            goFish(myHand[index]);
+        }
     }
 });
 
 //function to compare cards in player's own hand and remove duplicates, then add points
 function checkPairs() {
+    let points = 0;
     if(myHand) {
         for (let index = 0; index < myHand.length; index++) {
             let arr = myHand.slice();
@@ -664,11 +617,11 @@ function checkPairs() {
                 //console.log("match!!");
                 let matchingCard = arr.splice(match, 1);
                 myHand = arr;
-                updateHands();
-                addPoint();
+                points++;
                 chatUpdate("System", "You paired the " + matchingCard[0].value.toLowerCase() + " of " + matchingCard[0].suit.toLowerCase() + " and the " + searchCard[0].value.toLowerCase() + " of " + searchCard[0].suit.toLowerCase() + " in your hand");
             }
         }//end for
+        addPoint(points);
     } //end if myHand
 }
 
