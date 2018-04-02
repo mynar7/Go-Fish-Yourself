@@ -101,7 +101,7 @@ h1 {
 }
 
 @media only screen and (max-width: 420px) {
-    .boat, .fish2, .fish3 {
+    div.boat, div.fish2, div.fish3 {
         display: none;
     }
     h1 {
