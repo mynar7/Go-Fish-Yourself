@@ -3,7 +3,7 @@
 .boat {
     display: block;
     /*background-color: orange; */
-    z-index: 0;
+    z-index: -1;
     width: 100px;
     height: 130px;
     position: absolute;
@@ -43,7 +43,7 @@
 
 .fish3 {
     display: block;
-    z-index: 1;
+    z-index: -1;
     width: 60px;
     height: 40px;
     position: absolute;
@@ -96,6 +96,7 @@
     width: 8px;
     height: 8px;
     left: 10%;
+    z-index: -1;
     animation-name: air-bubble-large;
     animation-duration: 4s;
     animation-delay: 1s;
@@ -126,6 +127,7 @@
     width: 8px;
     height: 8px;
     left: 75%;
+    z-index: -1;
     animation-name: air-bubble-large;
     animation-duration: 6s;
     animation-delay: 3s;

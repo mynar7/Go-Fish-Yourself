@@ -32,8 +32,8 @@ let myPoints;
 let oppPoints;
 let insult = false;
 
-let nameColor = "yellow";
-let chatTxtColor = "yellow";
+let nameColor = "black";
+let chatTxtColor = "black";
 
 
 //grab the firebase connections reference

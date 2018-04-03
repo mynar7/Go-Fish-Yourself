@@ -1,5 +1,6 @@
 html {
     background: url("images/aquarium-plants.jpg");
+    z-index: -5;
 }
 
 html, body {
@@ -17,7 +18,7 @@ html, body {
 header {
     width: 100%;
     text-align: center;
-    margin-top: 20px;
+    padding-top: 10px;
 }
 
 h1 {
@@ -36,11 +37,10 @@ h1 {
 }
 
 .rps {
-    max-width: 400px;
+    max-width: 100%;
     margin: auto;
-    background-color: rgb(4,102,212);
+    background-color: rgba(4,102,212, 0.3);
     min-height: 160px;
-    z-index: 99;
 }
 .score {
     margin: 10px;
@@ -49,7 +49,7 @@ h1 {
     min-height: 80px;
 }
 .btnGrp {
-    max-width: 100%;
+    max-width: 400px;
     margin-left: 15%;
 }
 .opponentHand img {
@@ -64,31 +64,29 @@ h1 {
     margin-left: -15%;
 }
 .chatWrapper {
-    max-width: 400px;
+    max-width: 100%;
     margin: auto;
 }
 
 #chat {
     clear: both;
-    height: 250px;
+    height: 180px;
     /* makes the scroll bar stay at the bottom */
     overflow: auto;
     display: flex;
     flex-direction: column-reverse;
-    background-color: black;
-    color: yellow;
-    z-index: 99;
-}
-#chatName {
-    color: yellow;
-}
-
-#chatText {
-    color: yellow;
+    background-image: url('images/grunge_texture.png');
+    background-size: cover;
+    background-position: bottom;
+    background-color: rgb(219, 178, 116);
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding: 0 10px 5px 10px;
 }
 
 #textInput {
     width: 80%;
+    opacity: 0.7;
 }
 #sysMsg {
     color: red;
