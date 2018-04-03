@@ -491,25 +491,18 @@ function assignOppHandListen() {
     dataRef.child('data/goFish/hands').on('value', function(snap){
         oppHand = snap.child(opponentId).val();
         opponentHandCards();
-
     });
 }
 
 function opponentHandCards(){
-            $(".opponentHand").empty();
-        if(oppHand){
-        
-
+    $(".opponentHand").empty();
+    if(oppHand){
         for(var t = 0;t<oppHand.length;t++){
             var eachCard = $("<img>").attr("src", "./assets/images/cardBack.svg");
             $(".opponentHand").append(eachCard);
-
         }//for stop
     }//if stop
 }
- 
-
-    
 
 function assignGameOver() {
     dataRef.child('data/goFish/hands').on('child_removed', function(snap){
