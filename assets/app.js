@@ -648,8 +648,7 @@ function getInsult() {
         if(response) {
             chatPrint(oppName, response.insult);
         }
-    })
- 
- }
+    });//end then 
+ }//end getInsult fx
 
 });//doc ready
