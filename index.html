@@ -28,6 +28,8 @@
             <span class="bubble bubble3"></span>
             <span class="bubble bubble4"></span>
             <span class="bubble bubble5"></span>
+
+            <div class="container-fluid">
             <div class="rps" id="rps">
 
                 
@@ -60,15 +62,23 @@
                 </ul><!--end chat ul-->
                 <form>
                     <ul class="chatBtns">
-                        <li><input type="text" id="textInput"><button type="submit" id="enter" class="btn btn-success">Submit</button></li>
+                           <li><div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="textInput" aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                            <button type="submit" id="enter" class="btn btn-danger">Submit</button>
+                                    </div>
+                                  </div>
+
+                       </li>
                         <li>
                             <button type="button" id="clear"  class="btn btn-primary">Clear Chatlog</button>
-                            <button type="submit" class="btn btn-danger">Reconnect</button>
+                            <button type="submit" class="btn btn-primary">Reconnect</button>
                         </li>
                     </ul>   
                 </form>
             </div><!--end chat wrapper-->
         </div><!--end content div-->
+        </div>
     </div> <!-- End Body Wrapper Div (for fishtank) -->
         
     <!-- jQuery CDN -->
