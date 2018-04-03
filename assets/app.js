@@ -35,6 +35,7 @@ let insult = false;
 let nameColor = "yellow";
 let chatTxtColor = "yellow";
 
+
 //grab the firebase connections reference
 let userCons = db.ref('.info/connected');
 //make a reference for my lobbies folder on the database
@@ -489,8 +490,26 @@ function assignMyHandListen() {
 function assignOppHandListen() {
     dataRef.child('data/goFish/hands').on('value', function(snap){
         oppHand = snap.child(opponentId).val();
+        opponentHandCards();
+
     });
 }
+
+function opponentHandCards(){
+            $(".opponentHand").empty();
+        if(oppHand){
+        
+
+        for(var t = 0;t<oppHand.length;t++){
+            var eachCard = $("<img>").attr("src", "./assets/images/cardBack.svg");
+            $(".opponentHand").append(eachCard);
+
+        }//for stop
+    }//if stop
+}
+ 
+
+    
 
 function assignGameOver() {
     dataRef.child('data/goFish/hands').on('child_removed', function(snap){
