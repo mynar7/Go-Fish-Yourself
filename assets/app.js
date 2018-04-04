@@ -594,7 +594,7 @@ function displayCards() {
                 }
             });//end .each
             if(!onPage){
-                let img = $('<img>').attr("src", myHand[i].images.png).hide().attr("data-code", myHand[i].code).appendTo('#btnGrp');
+                let img = $('<img>').attr("src", urlHelp(myHand[i].images.png)).hide().attr("data-code", myHand[i].code).appendTo('#btnGrp');
                 img.fadeIn();
             }
         }//end for
@@ -602,11 +602,17 @@ function displayCards() {
     
     if(myHand && $('#btnGrp').children().length == 0) {
         for(let i = 0; i < myHand.length; i++) {
-            let img = $('<img>').attr("src", myHand[i].images.png).hide().attr("data-code", myHand[i].code).appendTo('#btnGrp');
+            let img = $('<img>').attr("src", urlHelp(myHand[i].images.png)).hide().attr("data-code", myHand[i].code).appendTo('#btnGrp');
             img.fadeIn();
         }//end for
     }//end if
 }//end fx
+
+function urlHelp(str){
+    //let str = "https://deckofcardsapi.com/static/img/KH.png";
+    let str2 = "https://" + str.slice(7);
+    return str2;
+}
 
 //assign click listener to card images to perform goFish
 $('#btnGrp').on("click", "img", function(){
