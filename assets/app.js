@@ -664,4 +664,3 @@ $(document).ready(function () {
      }//end getInsult fx
     
     });//doc ready
-    
