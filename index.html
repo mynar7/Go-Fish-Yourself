@@ -32,47 +32,31 @@
             <div class="container-fluid">
             <div class="rps" id="rps">
 
-                
-                <!--
-                <ul class="score" id="score">
-                    <li id="wins"></li>
-                    <li id="losses"></li>
-                    <li id="draws"></li>
-                </ul>
-                -->
-                <p><span id="points"></span></p>
-                <p><span id="oppPoints"></span></p>  
-                
+                <div class="score">
+                    <p><span id="points"></span></p>
+                    <p><span id="oppPoints"></span></p>
+                </div>
+                <img src="assets/images/fish-opponent.png" alt="fish pic" class="fishOp">
                 <div class="opponentHand"></div>
-                <ul id="status" class="status">
-                
-
-                </ul><!--end status ul -->
-                <!-- fish image -->
-                
-                        
-                <img src="assets/images/fish-opponent.png" alt="fish pic" height="80" width="80">
-                <div class="btnGrp" id="btnGrp">
-                    
-                </div><!--end btn grp-->
+                <div class="btnGrp" id="btnGrp"></div>
+                <ul id="status" class="status"></ul>
                 
             </div><!--end rps div-->
             <div class="chatWrapper">
-                <ul class="chat" id="chat">
-                </ul><!--end chat ul-->
+                <ul class="chat" id="chat"></ul>
                 <form>
                     <ul class="chatBtns">
                            <li><div class="input-group mb-3">
                                     <input type="text" class="form-control" id="textInput" aria-describedby="basic-addon2">
                                     <div class="input-group-append">
-                                            <button type="submit" id="enter" class="btn btn-danger">Submit</button>
+                                            <button type="submit" id="enter" class="btn btn-danger">Send</button>
                                     </div>
                                   </div>
 
                        </li>
                         <li>
-                            <button type="button" id="clear"  class="btn btn-primary">Clear Chatlog</button>
-                            <button type="submit" class="btn btn-primary">Reconnect</button>
+                            <button type="button" id="clear"  class="btn btn-primary">Clear Chat</button>
+                            <button type="submit" class="btn btn-primary">New Game</button>
                         </li>
                     </ul>   
                 </form>
