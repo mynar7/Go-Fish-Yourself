@@ -14,9 +14,9 @@
 </head>
 <body>
 
-    <div class="body-wrapper">
+    <div class="body-wrapper container-fluid">
         <header><h1>GO FISH</h1></header>
-        <div class="content tank">
+        <div class="content tank container-fluid">
             <div class="boat"><img src="assets/images/bucs_burned.png"></div>
             <div class="fish2"><img src="assets/images/tiny_fish.png"></div>
             <div class="fish3"><img src="assets/images/tiny_fish.png"></div>
@@ -29,10 +29,8 @@
             <span class="bubble bubble4"></span>
             <span class="bubble bubble5"></span>
 
-            <div class="container-fluid">
-            <div class="rps" id="rps">
-
-                
+            <div class="rps container-fluid" id="rps">
+               
                 <!--
                 <ul class="score" id="score">
                     <li id="wins"></li>
@@ -58,17 +56,16 @@
                 
             </div><!--end rps div-->
             <div class="chatWrapper">
-                <ul class="chat" id="chat">
+                <ul class="chat container-fluid" id="chat">
                 </ul><!--end chat ul-->
                 <form>
                     <ul class="chatBtns">
-                           <li><div class="input-group mb-3">
-                                    <input type="text" class="form-control" id="textInput" aria-describedby="basic-addon2">
-                                    <div class="input-group-append">
-                                            <button type="submit" id="enter" class="btn btn-danger">Submit</button>
-                                    </div>
-                                  </div>
-
+                        <li><div class="input-group mb-3">
+                            <input type="text" class="form-control" id="textInput" aria-describedby="basic-addon2">
+                                <div class="input-group-append">
+                                    <button type="submit" id="enter" class="btn btn-danger">Submit</button>
+                                </div>
+                            </div>
                        </li>
                         <li>
                             <button type="button" id="clear"  class="btn btn-primary">Clear Chatlog</button>
@@ -78,7 +75,6 @@
                 </form>
             </div><!--end chat wrapper-->
         </div><!--end content div-->
-        </div>
     </div> <!-- End Body Wrapper Div (for fishtank) -->
         
     <!-- jQuery CDN -->
