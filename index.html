@@ -7,8 +7,10 @@
     <title>Go Fish!</title>
     <link rel="SHORTCUT ICON" href="assets/images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="./assets/reset.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="./assets/style.css">
     <link rel="stylesheet" href="./assets/fishtank.css">
+    <link href="https://fonts.googleapis.com/css?family=Lobster" rel="stylesheet">
 </head>
 <body>
 
@@ -26,47 +28,42 @@
             <span class="bubble bubble3"></span>
             <span class="bubble bubble4"></span>
             <span class="bubble bubble5"></span>
+
+            <div class="container-fluid">
             <div class="rps" id="rps">
-
-                
-                <!--
-                <ul class="score" id="score">
-                    <li id="wins"></li>
-                    <li id="losses"></li>
-                    <li id="draws"></li>
-                </ul>
-                -->
-                <p><span id="points"></span></p>
-                <p><span id="oppPoints"></span></p>  
-                
+                <img src="assets/images/fish-opponent.png" alt="fish pic" class="fishOp">
                 <div class="opponentHand"></div>
-                <ul id="status" class="status">
+                <div class="score">Score: 
+                    <p><span id="points"></span></p>
+                    <p><span id="oppPoints"></span></p>
+                </div>  
+                <div class="btnGrp" id="btnGrp"></div>
                 
-
-                </ul><!--end status ul -->
-                <!-- fish image -->
-                
-                        
-                <img src="assets/images/fish-opponent.png" alt="fish pic" height="80" width="80">
-                <div class="btnGrp" id="btnGrp">
-                    
-                </div><!--end btn grp-->
-                
-            </div><!--end rps div-->
+            <!--end rps div-->
+            <ul id="status" class="status"></ul>    
+       
+        </div>
             <div class="chatWrapper">
-                <ul class="chat" id="chat">
-                </ul><!--end chat ul-->
+                <ul class="chat" id="chat"></ul>
                 <form>
                     <ul class="chatBtns">
-                        <li><input type="text" id="textInput"><button type="submit" id="enter">Submit</button></li>
+                           <li><div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="textInput" aria-describedby="basic-addon2">
+                                    <div class="input-group-append">
+                                            <button type="submit" id="enter" class="btn btn-danger">Send</button>
+                                    </div>
+                                  </div>
+
+                       </li>
                         <li>
-                            <button type="button" id="clear">Clear Chatlog</button>
-                            <button type="submit">Reconnect</button>
+                            <button type="button" id="clear"  class="btn btn-primary">Clear Chat</button>
+                            <button type="submit" class="btn btn-primary">New Game</button>
                         </li>
                     </ul>   
                 </form>
             </div><!--end chat wrapper-->
         </div><!--end content div-->
+        </div>
     </div> <!-- End Body Wrapper Div (for fishtank) -->
         
     <!-- jQuery CDN -->
@@ -74,6 +71,9 @@
     src="https://code.jquery.com/jquery-3.3.1.js"
     integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
     crossorigin="anonymous"></script>
+    <!-- bootstrap -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <!-- firebase -->
     <script src="https://www.gstatic.com/firebasejs/4.12.0/firebase.js"></script>
     <!-- my script -->
