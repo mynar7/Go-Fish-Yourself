@@ -34,6 +34,7 @@ let insult = false;
 
 let nameColor = "black";
 let chatTxtColor = "black";
+let bgColor = "rgb(223, 188, 136)";
 
 
 //grab the firebase connections reference
@@ -347,15 +348,23 @@ function parseInput(str) {
                             break;
                         }
                     } else {
-                        let color = str2
-                        nameColor = color;
-                        $('.chatName').css("color", color);
-                        chatTxtColor = color;
-                        $('.chatText').css("color", color);
+                        if(str2 == "default") {
+                            nameColor = "black";
+                            chatTxtColor = "black";
+                            $('.chatName').css("color", nameColor);
+                            $('.chatText').css("color", chatTxtColor);
+                            $('#chat').css("backgroundColor", bgColor);
+                        } else {
+                            let color = str2
+                            nameColor = color;
+                            $('.chatName').css("color", color);
+                            chatTxtColor = color;
+                            $('.chatText').css("color", color);
+                        }
                     }
 
                 } else {
-                    chatUpdate("System", "<span id='sysMsg'>Usage: /color 'color' : changes font color<br>/color bg 'color' : changes chat bg color<br>/color name 'color' : changes name color only<br>/color text 'color' : changes text color only</span>");
+                    chatUpdate("System", "<span id='sysMsg'>Usage: /color 'color' : changes font color<br>/color bg 'color' : changes chat bg color<br>/color name 'color' : changes name color only<br>/color text 'color' : changes text color only<br>/color default : restores original colors</span>");
                 }
                 return false;
             break;
@@ -374,7 +383,7 @@ function parseInput(str) {
 //initialize and get a new deck of cards
 function makeDeck() {
     //debug query for a quick game
-    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH"
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,AD,AH,AC,KH"
     let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
@@ -390,25 +399,21 @@ function makeDeck() {
 //draw cards and update firebase
 function drawCard(num) {
     let query = "https://deckofcardsapi.com/api/deck/" + deckId + "/draw/?count=" + num;
-    if(deckEmpty) {
-        return 'error';
-    }
     $.ajax({
         url: query,
         method: 'GET'
     }).then(function(resp){
         if(resp.success) {
-            if(resp.remaining === 0) {
-                deckEmpty = true;
-            }
             if(resp.cards.length === 1){
                 chatUpdate("System", "You drew the " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase());
             }
             addToHand(resp.cards);
         } else {
-            deckEmpty = true;
             if(resp.cards.length > 0){
                 addToHand(resp.cards);
+            } else {
+                myHand = null;
+                dataRef.child('data/goFish/hands').child(userId).remove();
             }
         }//end else
         displayCards()               
@@ -474,6 +479,7 @@ function assignDeckListen() {
         if(snap.val()) {
             deckId = snap.val();
             drawCard(5);
+            deckEmpty = false;
         }
         //console.log(deckId);
     });
