@@ -524,11 +524,11 @@ function assignGameOver() {
                 myPoints = snap.child(userId).val();
                 oppPoints = snap.child(opponentId).val();
                 if(myPoints > oppPoints) {
-                    $('#status li').html("You win");
+                    $('#status li').html("<span style='color:rgb(0, 159, 56)'>You win</span");
                 } else if (myPoints < oppPoints){
-                    $('#status li').html("You lose");            
+                    $('#status li').html("<span style='color:rgb(255, 4, 4)'>You lose</span>");
                 } else {
-                    $('#status li').html("You tied");                            
+                    $('#status li').html("<span style='color:rgb(3, 155, 229)'>You tied</span>");                            
                 }
             });//end dataref
         }
