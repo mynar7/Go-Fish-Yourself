@@ -80,7 +80,8 @@ userCons.on("value", function(userList){
                         assignChat();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
-                        chatUpdate("System", "<span id=sysMsg>Type /help for list of commands</span>");
+                        chatUpdate("System", "<span id=sysMsg>To play: Click on one of your cards to search your opponent's hand for a match!<br>The game ends when one of you empties your hand.<br>The player with the most pairs wins!</span>");
+                        chatUpdate("System", "<span id=sysMsg>Type /help for a list of commands</span>");                        
                         //go fish stuff
                         assignDeckListen();
                         makeDeck();
@@ -138,7 +139,7 @@ function makeLobby() {
     dataRef.child('chat').onDisconnect().remove();
     assignChat();
     chatPrint(userName, "Started Lobby");
-    chatUpdate("System", "<span id=sysMsg>Type /help for list of commands</span>");    
+    chatUpdate("System", "<span id=sysMsg>Type /help for a list of commands</span>");    
     assignTurn();
     //go fish fxs
     assignDeckListen();
