@@ -148,9 +148,10 @@ h1 {
 
 }
 
-@media only screen and (max-width: 420px) {
+@media only screen and (max-width: 426px) {
     body {
         font-size: 1em;
+        min-height: 700px;
     }
     div.boat, div.fish2, div.fish3 {
         display: none;
