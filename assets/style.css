@@ -28,9 +28,10 @@ h1 {
     font-size: 60px; 
     font-weight: normal; 
     line-height: 48px; 
-    margin: 3% 0 10%; 
+    margin: 0 0 3%; 
     text-align: center; 
-    text-shadow: 1px 1px 2px #082b34; }
+    text-shadow: 1px 1px 2px #082b34;
+}
 
 .content {
     max-width: 960px;
@@ -94,6 +95,11 @@ h1 {
 .btnGrp img {
     width: 25%;
     margin-left: -15%;
+    position: relative;
+}
+.btnGrp img:hover {
+    bottom: 10px;
+    cursor: pointer;
 }
 .chatWrapper {
     max-width: 100%;
@@ -111,22 +117,25 @@ h1 {
     background-size: cover;
     background-position: bottom;
     background-color: rgb(219, 178, 116);
+    opacity: 0.9;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
     padding: 0 10px 5px 10px;
 }
 
 #textInput {
-    opacity: 0.7;
-}
-#sysMsg {
-    color: rgb(221, 18, 18);
-    font-weight: 900;
+    background-color: rgba(255,255,255,0.7);
+    font-family: sans-serif;
+    font-weight: 600;
+    color: black;
 }
 
-.opponentHand{
-    height: 115
+#sysMsg {
+    color: rgb(221, 18, 18);
+    font-family: sans-serif;
+    font-weight: 600;
 }
+
 
 @media only screen and (max-width: 1013px) {
     
