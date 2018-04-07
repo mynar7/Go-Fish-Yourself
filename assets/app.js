@@ -80,7 +80,6 @@ userCons.on("value", function(userList){
                         assignChat();
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
-                        chatUpdate("System", "<span id=sysMsg>To play: Click on one of your cards to search your opponent's hand for a match!<br>The game ends when one of you empties your hand.<br>The player with the most pairs wins!</span>");
                         chatUpdate("System", "<span id=sysMsg>Type /help for a list of commands</span>");                        
                         //go fish stuff
                         assignDeckListen();
@@ -290,7 +289,7 @@ function parseInput(str) {
             command = str.slice(1, index)
         }
         command = command.trim().toLowerCase();
-        let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name newName : change user name<br>/insult : toggle insults on/off<br>/roll # : rolls a # sided die (if # omitted, # is 20)</span>";
+        let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name : change user name<br>/insult : toggle insults on/off<br>/roll # : rolls a # sided die (if # omitted, # is 20)<br>/color : change chat menu colors<br>/rules : view game rules</span>";
         switch(command) {
             case "name":
                 let newName = str.slice(index + 1);
@@ -368,6 +367,10 @@ function parseInput(str) {
                     chatUpdate("System", "<span id='sysMsg'>Usage: /color 'color' : changes font color<br>/color bg 'color' : changes chat bg color<br>/color name 'color' : changes name color only<br>/color text 'color' : changes text color only<br>/color default : restores original colors</span>");
                 }
                 return false;
+            break;
+            case 'rules':
+                chatUpdate("System", "<span id=sysMsg>To play: Click on one of your cards to search your opponent's hand for a match!<br>The game ends when one of you empties your hand.<br>The player with the most pairs wins!</span>");                
+            return false;
             break;
             default:
                 chatUpdate("System", "<span id='sysMsg'>try /help for commands</span>");
