@@ -1,4 +1,3 @@
-$(document).ready(function () {
 // Initialize Firebase
 var config = {
     apiKey: "AIzaSyBBflwDizYQNO2MpD9EpXzrgWUo1fmctCQ",
@@ -41,6 +40,10 @@ let bgColor = "rgb(223, 188, 136)";
 let userCons = db.ref('.info/connected');
 //make a reference for my lobbies folder on the database
 let lobbies = db.ref('/lobbies');
+
+$(document).ready(function () {
+
+
 userCons.on("value", function(userList){
     if(userList.val()) {
         //see how many lobbies there are or if there's any
@@ -110,6 +113,9 @@ userCons.on("value", function(userList){
     
     } //end if userList.val
 }); //end userCons call
+
+});//doc ready
+
 
 function makeLobby() {
     //make a lobby and push to it to create a user
@@ -387,8 +393,8 @@ function parseInput(str) {
 //initialize and get a new deck of cards
 function makeDeck() {
     //debug query for a quick game
-    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,AD,AH,AC,KH"
-    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H"
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
         method: 'GET'
@@ -423,6 +429,11 @@ function drawCard(num) {
         displayCards()               
         setTimeout(()=>{
             checkPairs();
+            /*
+            if(myHand.length === 0) {
+                console.log("empty");
+            }
+            */
             updateMyHand();
         }, 500);
     }); //end ajax
@@ -475,6 +486,10 @@ function updateMyHand() {
     dataRef.child('data/goFish/hands').update({
         [userId]: myHand,
     });
+}
+
+function emptyHand() {
+    dataRef.child('data/goFish/hands').child(userId).remove();
 }
 
 //captures deck ID to share between users
@@ -623,7 +638,7 @@ $('#btnGrp').on("click", "img", function(){
     if(myTurn) {
         let code = $(this).attr("data-code");
         let index = myHand.findIndex(x => {return code == x.code});
-        if(index > -1) {
+        if(index > -1 && oppHand) {
             goFish(myHand[index]);
         }
     }
@@ -667,4 +682,3 @@ function getInsult() {
     });//end then 
  }//end getInsult fx
 
-});//doc ready
