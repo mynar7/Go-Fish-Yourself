@@ -31,7 +31,9 @@ let myPoints;
 let oppPoints;
 let insult = false;
 
-let nameColor = "black";
+let nameColor = "blue";
+let opNameColor = "purple";
+let sysNameColor = "rgb(221, 18, 18)";
 let chatTxtColor = "black";
 let bgColor = "rgb(223, 188, 136)";
 
@@ -43,6 +45,9 @@ let lobbies = db.ref('/lobbies');
 
 $(document).ready(function () {
 
+window.onclick = function() {
+    document.getElementById('textInput').focus();
+}
 
 userCons.on("value", function(userList){
     if(userList.val()) {
@@ -272,7 +277,13 @@ function chatPrint(name, str, bool) {
 function chatUpdate(name, str) {
     let chatBox = $('#chat');
     // chatBox.append('<p>' + name + ': ' + str + '</p>');
-    $('<li>').html('<span class="chatName" style="color:' + nameColor + ';">' + name + ': </span>' + '<span class="chatText" style="color:' + chatTxtColor + ';">' + str + '</span>').prependTo(chatBox);
+    if(name === userName) {
+        $('<li>').html('<span class="chatName" style="color:' + nameColor + ';">' + name + ': </span>' + '<span class="chatText" style="color:' + chatTxtColor + ';">' + str + '</span>').prependTo(chatBox);
+    } else if (name === oppName) {
+        $('<li>').html('<span class="opChatName" style="color:' + opNameColor + ';">' + name + ': </span>' + '<span class="chatText" style="color:' + chatTxtColor + ';">' + str + '</span>').prependTo(chatBox);        
+    } else {
+        $('<li>').html('<span class="sysChatName" style="color:' + sysNameColor + ';">' + name + ': </span>' + '<span class="chatText" style="color:' + chatTxtColor + ';">' + str + '</span>').prependTo(chatBox);        
+    }
 }
 
 //this fx returns a random number from 1 - sides, if no arg, sides = 20
@@ -345,6 +356,14 @@ function parseInput(str) {
                                 nameColor = color;
                                 $('.chatName').css("color", color);
                             break;
+                            case 'opname':
+                                opNameColor = color;
+                                $('.opChatName').css("color", color);                                
+                            break;
+                            case 'sysname':
+                                sysNameColor = color;
+                                $('.sysChatName').css("color", color);                                
+                            break;
                             case 'text':
                                 chatTxtColor = color;
                                 $('.chatText').css("color", color);
@@ -355,9 +374,13 @@ function parseInput(str) {
                         }
                     } else {
                         if(str2 == "default") {
-                            nameColor = "black";
+                            nameColor = "blue";
+                            opNameColor = "purple";
+                            sysNameColor = "red";
                             chatTxtColor = "black";
                             $('.chatName').css("color", nameColor);
+                            $('.sysChatName').css("color", sysNameColor);
+                            $('.opChatName').css("color", opNameColor);                            
                             $('.chatText').css("color", chatTxtColor);
                             $('#chat').css("backgroundColor", bgColor);
                         } else {
@@ -370,7 +393,7 @@ function parseInput(str) {
                     }
 
                 } else {
-                    chatUpdate("System", "<span id='sysMsg'>Usage: /color 'color' : changes font color<br>/color bg 'color' : changes chat bg color<br>/color name 'color' : changes name color only<br>/color text 'color' : changes text color only<br>/color default : restores original colors</span>");
+                    chatUpdate("System", "<span id='sysMsg'>Usage: /color 'color' : changes font color<br>/color bg 'color' : changes chat bg color<br>/color name 'color' : changes name color only<br>/color opName 'color' : change opponent's name color<br>/color sysName 'color' : change system name color<br>/color text 'color' : changes text color only<br>/color default : restores original colors</span>");
                 }
                 return false;
             break;
@@ -393,8 +416,8 @@ function parseInput(str) {
 //initialize and get a new deck of cards
 function makeDeck() {
     //debug query for a quick game
-    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H"
-    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H"
+    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
         method: 'GET'
@@ -415,7 +438,7 @@ function drawCard(num) {
     }).then(function(resp){
         if(resp.success) {
             if(resp.cards.length === 1){
-                chatUpdate("System", "You drew the " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase());
+                //chatUpdate("System", "<span id='sysMsg'>You drew the " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase() + "</span>");
             }
             addToHand(resp.cards);
         } else {
@@ -469,7 +492,7 @@ function goFish (card) {
         let myCardIndex = myHand.findIndex(x => {return x.code === card.code});
         myHand.splice(myCardIndex, 1);
         addPoint(1);
-        chatPrint("System", userName + " received the " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName);
+        chatPrint("System","<span id='sysMsg'>" + userName + " received the " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName + "</span>");
         updateHands();
     }
 }
@@ -661,7 +684,7 @@ function checkPairs() {
                 let matchingCard = arr.splice(match, 1);
                 myHand = arr;
                 points++;
-                chatUpdate("System", "You paired the " + matchingCard[0].value.toLowerCase() + " of " + matchingCard[0].suit.toLowerCase() + " and the " + searchCard[0].value.toLowerCase() + " of " + searchCard[0].suit.toLowerCase() + " in your hand");
+                chatUpdate("System", "<span id='sysMsg'>You paired the " + matchingCard[0].value.toLowerCase() + " of " + matchingCard[0].suit.toLowerCase() + " and the " + searchCard[0].value.toLowerCase() + " of " + searchCard[0].suit.toLowerCase() + " in your hand</span>");
             }
         }//end for
         addPoint(points);
