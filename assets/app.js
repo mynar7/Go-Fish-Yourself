@@ -393,8 +393,8 @@ function parseInput(str) {
 //initialize and get a new deck of cards
 function makeDeck() {
     //debug query for a quick game
-    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H"
-    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H"
+    let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
         method: 'GET'
