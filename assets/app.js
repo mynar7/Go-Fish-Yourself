@@ -22,6 +22,7 @@ let winCount;
 let lossCount;
 let drawCount;
 let myTurn = false;
+let cpuGame = false;
 
 let deckId;
 let myHand;
@@ -258,19 +259,21 @@ function assignChat() {
 //parse for commands, if not command, send to database to be read
 function chatPrint(name, str, bool) {
     str = parseInput(str);
-    if(str !== false && arguments.length === 2) {
-        dataRef.child('chat').update({
-            lastMsg: str,
-            msgBy: name
-        });
-    }
-    if(str !== false && arguments.length === 3) {
-        dataRef.child('chat').update({
-            lastMsg: str,
-            msgBy: name,
-            insults: bool
-        });
-    }//end if
+    if(!cpuGame) {
+        if(str !== false && arguments.length === 2) {
+            dataRef.child('chat').update({
+                lastMsg: str,
+                msgBy: name
+            });
+        }
+        if(str !== false && arguments.length === 3) {
+            dataRef.child('chat').update({
+                lastMsg: str,
+                msgBy: name,
+                insults: bool
+            });
+        }//end if
+    }//end cpugame if
 }
 
 //take input and add it to the chat window
@@ -596,19 +599,21 @@ function assignPointListen() {
 }
 
 function addPoint (num) {
-    dataRef.child('data/goFish/points').once("value", function(snap){
-        if(!snap.hasChild(userId)) {
-            dataRef.child('data/goFish/points').update({
-                [userId]: num
-            });
-        } else {
-            // console.log("add: ", snap.val().hand);
-            dataRef.child('data/goFish/points').update({
-                [userId]: snap.child(userId).val() + num
-            });
-        }
-    });
-}
+    if(!cpuGame) {
+        dataRef.child('data/goFish/points').once("value", function(snap){
+            if(!snap.hasChild(userId)) {
+                dataRef.child('data/goFish/points').update({
+                    [userId]: num
+                });
+            } else {
+                // console.log("add: ", snap.val().hand);
+                dataRef.child('data/goFish/points').update({
+                    [userId]: snap.child(userId).val() + num
+                });
+            }
+        });
+    }//end if
+} //end addPoint
 
 function displayCards() {
     let inHand;
@@ -705,3 +710,47 @@ function getInsult() {
     });//end then 
  }//end getInsult fx
 
+//ai opponent stuff
+
+function aiOppSetup() {
+    /*
+    lobbyRef.once(function(snap){
+        if(snap.numChildren() == '1') {
+            
+        }
+    });
+    */
+   if(!cpuGame) {
+        //set state cpuGame       
+        cpuGame = true;
+        //nuke everything from firebase
+        lobbyRef.remove();
+        dataRef.remove();
+
+        //unassign listeners
+       
+        //assignNameListen();
+        lobbyRef.off();
+        //assignChat();
+        dataRef.child('chat').off();
+        //assignDeckListen();
+        dataRef.child('data/goFish').child('deck_id').off()
+        //assignMyHandListen();
+        dataRef.child('data/goFish/hands').child(userId).off();
+        //assignOppHandListen();
+        dataRef.child('data/goFish/hands').off();
+        //assignPointListen();
+        //assignGameOver();
+        dataRef.child('data/goFish/points').off();
+        dataRef.child('data/goFish/points').off();        
+        //assignTurn();
+        dataRef.child('data/turns/turn').off();
+       
+        //undo update fxs
+        //chatUpdate
+        //addpoint
+
+        //write new functions if necessary for cpu player
+    }
+
+}
