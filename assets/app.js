@@ -194,15 +194,17 @@ function assignTurn() {
 
 //change turn fx
 function changeTurn () {
-    let x;
-    if (opponentId) {
-        x = opponentId;
-    } else {
-        x = userId;
+    if(!cpuGame) {
+        let x;
+        if (opponentId) {
+            x = opponentId;
+        } else {
+            x = userId;
+        }
+        dataRef.child('data/turns').update({
+            turn: x,
+        });
     }
-    dataRef.child('data/turns').update({
-        turn: x,
-    });
 }
 
 //chat submit button event listener function
@@ -216,9 +218,11 @@ $('#enter').on("click", function(event){
 //fx to change username
 function changeName(str) {
     userName = str;
-    userRef.update({
-        name: userName
-    });
+    if(!cpuGame) {
+        userRef.update({
+            name: userName
+        });
+    }
 }
 
 //clear chat fx
@@ -273,7 +277,9 @@ function chatPrint(name, str, bool) {
                 insults: bool
             });
         }//end if
-    }//end cpugame if
+    } else if (str !== false) {
+        chatUpdate(name, str);
+    }
 }
 
 //take input and add it to the chat window
@@ -426,9 +432,14 @@ function makeDeck() {
         method: 'GET'
     }).then(function(resp){
         deckId = resp.deck_id;
-        dataRef.child('data/goFish').update({
-            deck_id: deckId
-        });
+        if(!cpuGame) {
+            dataRef.child('data/goFish').update({
+                deck_id: deckId
+            });
+        } else {
+            drawCard(5);
+            //drawoppcard(5);
+        }
     });//end then
 }
 
@@ -488,7 +499,7 @@ function goFish (card) {
         }
         setTimeout(()=>{
             drawCard(1)
-            changeTurn();          
+            changeTurn();         
         }, 1500);
     } else {
         let foundCard = oppHand.splice(index, 1);
@@ -497,21 +508,29 @@ function goFish (card) {
         addPoint(1);
         chatPrint("System","<span id='sysMsg'>" + userName + " received the " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName + "</span>");
         updateHands();
+        if(cpuGame) {
+            displayCards();
+            opponentHandCards();
+        }
     }
 }
 
 //update both hands
 function updateHands () {
+    if(!cpuGame) {
         dataRef.child('data/goFish/hands').update({
             [userId]: myHand,
             [opponentId]: oppHand
         });
+    }
 }
 //update only my hand
 function updateMyHand() {
-    dataRef.child('data/goFish/hands').update({
-        [userId]: myHand,
-    });
+    if(!cpuGame) {
+        dataRef.child('data/goFish/hands').update({
+            [userId]: myHand,
+        });
+    }
 }
 
 function emptyHand() {
@@ -721,6 +740,14 @@ function aiOppSetup() {
     });
     */
    if(!cpuGame) {
+        myHand = null;
+        oppHand = null;
+        oppName = "System";
+        myPoints = 0;
+        oppPoints = 0;
+        $('#btnGrp').empty();
+        $('.opponentHand').empty();
+
         //set state cpuGame       
         cpuGame = true;
         //nuke everything from firebase
@@ -751,6 +778,9 @@ function aiOppSetup() {
         //addpoint
 
         //write new functions if necessary for cpu player
+
+        makeDeck();
+        //drawCard(5);
     }
 
 }
