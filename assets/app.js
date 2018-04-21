@@ -31,6 +31,7 @@ let deckEmpty;
 let myPoints;
 let oppPoints;
 let insult = false;
+let myGuesses = [];
 
 let nameColor = "blue";
 let opNameColor = "purple";
@@ -232,6 +233,11 @@ $('#clear').on("click", function(event){
 });
 
 function turnNotice() {
+    if(cpuGame) {
+        $('#status').empty();
+
+
+    }
     if(myTurn) {
         $('<li>').html("It's your turn.").appendTo("#status");                    
     } else {
@@ -247,17 +253,21 @@ function assignChat() {
             chatUpdate(snap.val().msgBy, snap.val().lastMsg);
             if(snap.val().insults != insult) {
                 insult = snap.val().insults;
-                if(insult) {
-                    $('header h1').html("GO FISH YOURSELF");                                        
-                } else {
-                    $('header h1').html("GO FISH");                    
-                }
+                insultBanner();
             }
         } else {
             //use that null error to print a disconnect
             chatUpdate("System", "<span id='sysMsg'>player disconnected</span>");
         }
     });
+}
+
+function insultBanner() {
+    if(insult) {
+        $('header h1').html("GO FISH YOURSELF");                                        
+    } else {
+        $('header h1').html("GO FISH");                    
+    }
 }
 
 //parse for commands, if not command, send to database to be read
@@ -347,8 +357,16 @@ function parseInput(str) {
             case "insult":
                 if(insult){
                     chatPrint("System", "<span id='sysMsg'>" + userName + " turned insults off.</span>", false);
+                    if(cpuGame) {
+                        insult = false;
+                        insultBanner();
+                    }
                 } else {
                     chatPrint("System", "<span id='sysMsg'>" + userName + " turned insults on.</span>", true);
+                    if(cpuGame) {
+                        insult = true;
+                        insultBanner();
+                    }
                 }
             return false;
             break;
@@ -425,7 +443,7 @@ function parseInput(str) {
 //initialize and get a new deck of cards
 function makeDeck() {
     //debug query for a quick game
-    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH,3H"
+    //let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?cards=AS,2S,KS,AD,2D,KD,AC,2C,KC,AH,2H,KH"
     let query = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
     $.ajax({
         url: query,
@@ -437,43 +455,76 @@ function makeDeck() {
                 deck_id: deckId
             });
         } else {
-            drawCard(5);
-            //drawoppcard(5);
+            drawCard(5, "initial");
         }
     });//end then
 }
 
 //draw cards and update firebase
-function drawCard(num) {
+function drawCard(num, cpu) {
     let query = "https://deckofcardsapi.com/api/deck/" + deckId + "/draw/?count=" + num;
     $.ajax({
         url: query,
         method: 'GET'
     }).then(function(resp){
-        if(resp.success) {
-            if(resp.cards.length === 1){
-                //chatUpdate("System", "<span id='sysMsg'>You drew the " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase() + "</span>");
-            }
+        if(cpu == "cpu") {
+            cpuCards(resp);
+        } else if (cpu == "initial") {
+            cpuCards(resp);
+            drawCard(5);
+        } else {
+            playerCards(resp);
+        }
+    }); //end ajax
+}
+
+function cpuCards(resp) {
+    if(resp.success) {
+        if(resp.cards.length === 1){
+            //chatUpdate("System", "<span id='sysMsg'>You drew the " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase() + "</span>");
+        }
+        addToOppHand(resp.cards);
+    } else {
+        if(resp.cards.length > 0){
+            addToOppHand(resp.cards);
+        } else {
+            oppHand = null;
+        }
+    }//end else
+    opponentHandCards();
+    setTimeout(()=>{
+        checkOppPairs();
+        opponentHandCards();
+    }, 500);
+}
+
+function playerCards(resp) {
+    if(resp.success) {
+        if(resp.cards.length === 1){
+            //chatUpdate("System", "<span id='sysMsg'>You drew the " + resp.cards[0].value.toLowerCase() + " of " + resp.cards[0].suit.toLowerCase() + "</span>");
+        }
+        addToHand(resp.cards);
+    } else {
+        if(resp.cards.length > 0){
             addToHand(resp.cards);
         } else {
-            if(resp.cards.length > 0){
-                addToHand(resp.cards);
-            } else {
-                myHand = null;
-                dataRef.child('data/goFish/hands').child(userId).remove();
-            }
-        }//end else
-        displayCards()               
-        setTimeout(()=>{
-            checkPairs();
-            /*
-            if(myHand.length === 0) {
-                console.log("empty");
-            }
-            */
-            updateMyHand();
-        }, 500);
-    }); //end ajax
+            myHand = null;
+            dataRef.child('data/goFish/hands').child(userId).remove();
+        }
+    }//end else
+    displayCards()               
+    setTimeout(()=>{
+        checkPairs();
+        /*
+        if(myHand.length === 0) {
+            console.log("empty");
+        }
+        */
+        updateMyHand();
+        if(cpuGame) {
+            displayCards();
+        }
+    }, 500);
 }
 
 //takes an array of objects, adds array to user's hand of cards
@@ -485,13 +536,30 @@ function addToHand (arr) {
    }
 }
 
+function addToOppHand(arr) {
+    if(!oppHand){
+        oppHand = arr;
+    } else {
+        oppHand = oppHand.concat(arr);
+    }
+}
+let aiMove;
+
 function goFish (card) {
     let cardName =  "Got any " + card.value.toLowerCase() + "s?";
     chatPrint(userName, cardName);
     let index;
     index = oppHand.findIndex(x => {return x.value === card.value});
     if(index === -1) {
+        /*
+        if(cpuGame) {
+            myGuesses.push(card.value);
+        }
+        */
         myTurn = false;
+        if(cpuGame) {
+            turnNotice();
+        }
         if(insult){
             getInsult();
         } else {
@@ -499,7 +567,11 @@ function goFish (card) {
         }
         setTimeout(()=>{
             drawCard(1)
-            changeTurn();         
+            if(cpuGame) {
+                aiMove = setTimeout(aiFish, 3000);
+            } else {
+                changeTurn();     
+            }
         }, 1500);
     } else {
         let foundCard = oppHand.splice(index, 1);
@@ -509,10 +581,59 @@ function goFish (card) {
         chatPrint("System","<span id='sysMsg'>" + userName + " received the " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + oppName + "</span>");
         updateHands();
         if(cpuGame) {
+            turnNotice();
             displayCards();
             opponentHandCards();
+            if(myHand.length == 0 || oppHand.length == 0) {
+                endGame();
+            }
         }
     }
+}
+
+function aiFish() {
+    let guess = Math.floor(Math.random() * oppHand.length);
+    let card = oppHand[guess];
+
+    let cardName =  "Got any " + card.value.toLowerCase() + "s?";
+    chatPrint("System", cardName);
+    let index;
+    index = myHand.findIndex(x => {return x.value === card.value});
+    if(index === -1) {
+        /*
+        if(cpuGame) {
+            myGuesses.push(card.value);
+        }
+        */
+        
+        if(insult){
+            getInsult("cpu");
+        } else {
+            setTimeout(()=>{chatPrint(userName, "Go Fish.")}, 1000);
+        }
+        setTimeout(()=>{
+            drawCard(1, "cpu")
+            myTurn = true;
+            turnNotice();        
+        }, 1500);
+    } else {
+        setTimeout(function(){
+            let foundCard = myHand.splice(index, 1);
+            let myCardIndex = oppHand.findIndex(x => {return x.code === card.code});
+            oppHand.splice(myCardIndex, 1);
+            chatPrint("System","<span id='sysMsg'>" + oppName + " received the " + foundCard[0].value.toLowerCase() + " of " + foundCard[0].suit.toLowerCase() + " from " + userName + "</span>");
+            oppPoints++;
+            displayPoints();
+            displayCards();
+            opponentHandCards();
+            if(oppHand.length == 0 || myHand.length == 0) {
+                endGame();
+            } else {
+                setTimeout(aiFish, 4000);
+            }
+        }, 2000);
+    }
+
 }
 
 //update both hands
@@ -587,34 +708,42 @@ function assignGameOver() {
             dataRef.child('data/goFish/points').once('value', function(snap) {
                 myPoints = snap.child(userId).val();
                 oppPoints = snap.child(opponentId).val();
-                if(myPoints > oppPoints) {
-                    $('#status li').html("<span style='color:rgb(0, 159, 56)'>You win</span");
-                } else if (myPoints < oppPoints){
-                    $('#status li').html("<span style='color:rgb(255, 4, 4)'>You lose</span>");
-                } else {
-                    $('#status li').html("<span style='color:rgb(3, 155, 229)'>You tied</span>");                            
-                }
+                displayWinLose();
             });//end dataref
         }
     });
+}
+
+function displayWinLose() {
+    if(myPoints > oppPoints) {
+        $('#status li').html("<span style='color:rgb(0, 159, 56)'>You win</span");
+    } else if (myPoints < oppPoints){
+        $('#status li').html("<span style='color:rgb(255, 4, 4)'>You lose</span>");
+    } else {
+        $('#status li').html("<span style='color:rgb(3, 155, 229)'>You tied</span>");                            
+    }
 }
 
 function assignPointListen() {
     dataRef.child('data/goFish/points').on('value', function(snap){
         myPoints = snap.child(userId).val();
         oppPoints = snap.child(opponentId).val();
-        if(snap.child(userId).val()) {
-            $('#points').html("My pairs:" + myPoints);
-        } else {
-            $('#points').html('');            
-        }
-
-        if(snap.child(opponentId).val()) {
-            $('#oppPoints').html(oppName + "'s pairs: " + oppPoints);
-        } else {
-            $('#oppPoints').html('');            
-        }
+        displayPoints();
     });
+}
+
+function displayPoints() {
+    if(myPoints) {
+        $('#points').html("My pairs:" + myPoints);
+    } else {
+        $('#points').html('');            
+    }
+
+    if(oppPoints) {
+        $('#oppPoints').html(oppName + "'s pairs: " + oppPoints);
+    } else {
+        $('#oppPoints').html('');            
+    }
 }
 
 function addPoint (num) {
@@ -631,7 +760,14 @@ function addPoint (num) {
                 });
             }
         });
-    }//end if
+    } else { //if cpuGame
+        if(!myPoints) {
+            myPoints = num;
+        } else {
+            myPoints += num;
+        }
+        displayPoints();
+    }
 } //end addPoint
 
 function displayCards() {
@@ -712,10 +848,40 @@ function checkPairs() {
             }
         }//end for
         addPoint(points);
+        if(myHand.length == 0) {
+            endGame();
+        }
     } //end if myHand
 }
 
-function getInsult() {
+function checkOppPairs() {
+    let points = 0;
+    if(oppHand) {
+        for (let index = 0; index < oppHand.length; index++) {
+            let arr = oppHand.slice();
+            let searchCard = arr.splice(index, 1);
+            //console.log("card: ", JSON.stringify(searchCard));
+            //console.log("value: ", searchCard[0].value);
+            //console.log("hand: ", JSON.stringify(arr));
+            let match = arr.findIndex(x => {return x.value === searchCard[0].value});
+            
+            if(match > -1) {
+                //console.log("match!!");
+                let matchingCard = arr.splice(match, 1);
+                oppHand = arr;
+                points++;
+                chatUpdate("System", "<span id='sysMsg'>CPU paired the " + matchingCard[0].value.toLowerCase() + " of " + matchingCard[0].suit.toLowerCase() + " and the " + searchCard[0].value.toLowerCase() + " of " + searchCard[0].suit.toLowerCase() + " in their hand</span>");
+            }
+        }//end for
+        oppPoints += points;
+        displayPoints();
+        if(oppHand.length == 0) {
+            endGame();
+        }
+    } //end if oppHand
+}
+
+function getInsult(cpu) {
     var cors = 'https://cors-anywhere.herokuapp.com/'
     var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=1 id=adj1> <amount> of <adjective min=1 max=1> <animal> <animal_part>";
     $.ajax({
@@ -723,8 +889,10 @@ function getInsult() {
         method: "GET"
     })
     .then(function(response) {
-        if(response) {
+        if(response && !cpu) {
             chatPrint(oppName, response.insult);
+        } else if(response && cpu) {
+            chatPrint(userName, response.insult);
         }
     });//end then 
  }//end getInsult fx
@@ -780,7 +948,20 @@ function aiOppSetup() {
         //write new functions if necessary for cpu player
 
         makeDeck();
-        //drawCard(5);
+        myTurn = true;
+        turnNotice();
     }
-
 }
+
+function endGame() {
+    clearInterval(aiMove);
+    displayWinLose();
+}
+
+$('#aiGame').on("click", function(event){
+    event.preventDefault();
+    $(this).fadeOut(500, function(){
+        $(this).remove();
+    });
+    aiOppSetup();
+});
