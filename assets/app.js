@@ -47,10 +47,6 @@ let lobbies = db.ref('/lobbies');
 
 $(document).ready(function () {
 
-window.onclick = function() {
-    document.getElementById('textInput').focus();
-}
-
 userCons.on("value", function(userList){
     if(userList.val()) {
         //see how many lobbies there are or if there's any
