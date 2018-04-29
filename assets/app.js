@@ -692,21 +692,18 @@ function opponentHandCards(){
         if(screenCards > actualCards) {
             let difference = screenCards - actualCards;
             for(let i = 0; i < difference; i++) {
-                let cardNum = screenCards - i;
-                let target = $('.opponentHand').children().last().remove();
-                /*
-                target.fadeOut(500, function(target){
-                    $(target).remove();
+                let displayedCards = $('.opponentHand').children();
+                let cardNum = screenCards - 1 - i;
+                $(displayedCards[cardNum]).fadeOut(500, function(){
+                    $(this).remove();
                 });
-                */
+                
             }
         } else if (screenCards < actualCards) {
             let difference = actualCards - screenCards;
             for(let i = 0; i < difference; i++) {
-                let newCard = $("<img>").attr("src", "./assets/images/cardBack.svg");
-                //.hide();
-                $(newCard).appendTo(".opponentHand");
-                //.fadeIn(500);
+                let newCard = $("<img>").attr("src", "./assets/images/cardBack.svg").hide();
+                $(newCard).appendTo(".opponentHand").fadeIn(500);
             }
         }
     }
