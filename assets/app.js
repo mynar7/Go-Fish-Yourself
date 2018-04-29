@@ -682,6 +682,27 @@ function assignOppHandListen() {
 }
 
 function opponentHandCards(){
+    if(oppHand) {
+        let screenCards = $('.opponentHand').children().length;
+        let actualCards = oppHand.length;
+        if(screenCards > actualCards) {
+            let difference = screenCards - actualCards;
+            for(let i = 0; i < difference; i++) {
+                let cardNum = screenCards - i;
+                let target = $('.opponentHand').children().last();
+                target.fadeOut(500, function(){
+                    target.remove();
+                });
+            }
+        } else if (screenCards < actualCards) {
+            let difference = actualCards - screenCards;
+            for(let i = 0; i < difference; i++) {
+                let newCard = $("<img>").attr("src", "./assets/images/cardBack.svg").hide();
+                $(newCard).appendTo(".opponentHand").fadeIn(500);
+            }
+        }
+    }
+    /*
     $(".opponentHand").empty();
     if(oppHand){
         for(var t = 0;t<oppHand.length;t++){
@@ -689,6 +710,7 @@ function opponentHandCards(){
             $(".opponentHand").append(eachCard);
         }//for stop
     }//if stop
+    */
 }
 
 function assignGameOver() {
