@@ -706,6 +706,8 @@ function opponentHandCards(){
                 $(newCard).appendTo(".opponentHand").fadeIn(500);
             }
         }
+    } else {
+        $('.opponentHand').empty();
     }
     /*
     $(".opponentHand").empty();
