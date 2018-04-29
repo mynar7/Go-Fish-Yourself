@@ -487,11 +487,11 @@ function cpuCards(resp) {
             oppHand = null;
         }
     }//end else
-    opponentHandCards();
+    
     setTimeout(()=>{
         checkOppPairs();
-        opponentHandCards();
-    }, 500);
+        //opponentHandCards();
+    }, 1000);
 }
 
 function playerCards(resp) {
@@ -508,7 +508,7 @@ function playerCards(resp) {
             dataRef.child('data/goFish/hands').child(userId).remove();
         }
     }//end else
-    displayCards()               
+    //displayCards()               
     setTimeout(()=>{
         checkPairs();
         /*
@@ -520,7 +520,7 @@ function playerCards(resp) {
         if(cpuGame) {
             displayCards();
         }
-    }, 500);
+    }, 1000);
 }
 
 //takes an array of objects, adds array to user's hand of cards
@@ -530,6 +530,7 @@ function addToHand (arr) {
    } else {
         myHand = myHand.concat(arr);
    }
+   displayCards();
 }
 
 function addToOppHand(arr) {
@@ -538,6 +539,7 @@ function addToOppHand(arr) {
     } else {
         oppHand = oppHand.concat(arr);
     }
+    opponentHandCards();
 }
 let aiMove;
 
@@ -608,7 +610,7 @@ function aiFish() {
             setTimeout(()=>{chatPrint(userName, "Go Fish.")}, 1000);
         }
         setTimeout(()=>{
-            drawCard(1, "cpu")
+            drawCard(1, "cpu");
             myTurn = true;
             turnNotice();        
         }, 1500);
@@ -684,21 +686,27 @@ function assignOppHandListen() {
 function opponentHandCards(){
     if(oppHand) {
         let screenCards = $('.opponentHand').children().length;
+        console.log("screenCards: ", screenCards);
         let actualCards = oppHand.length;
+        console.log("actualCards: ", actualCards);        
         if(screenCards > actualCards) {
             let difference = screenCards - actualCards;
             for(let i = 0; i < difference; i++) {
                 let cardNum = screenCards - i;
-                let target = $('.opponentHand').children().last();
-                target.fadeOut(500, function(){
-                    target.remove();
+                let target = $('.opponentHand').children().last().remove();
+                /*
+                target.fadeOut(500, function(target){
+                    $(target).remove();
                 });
+                */
             }
         } else if (screenCards < actualCards) {
             let difference = actualCards - screenCards;
             for(let i = 0; i < difference; i++) {
-                let newCard = $("<img>").attr("src", "./assets/images/cardBack.svg").hide();
-                $(newCard).appendTo(".opponentHand").fadeIn(500);
+                let newCard = $("<img>").attr("src", "./assets/images/cardBack.svg");
+                //.hide();
+                $(newCard).appendTo(".opponentHand");
+                //.fadeIn(500);
             }
         }
     }
@@ -889,6 +897,7 @@ function checkOppPairs() {
                 oppHand = arr;
                 points++;
                 chatUpdate("System", "<span id='sysMsg'>CPU paired the " + matchingCard[0].value.toLowerCase() + " of " + matchingCard[0].suit.toLowerCase() + " and the " + searchCard[0].value.toLowerCase() + " of " + searchCard[0].suit.toLowerCase() + " in their hand</span>");
+                opponentHandCards();
             }
         }//end for
         oppPoints += points;
