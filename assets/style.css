@@ -147,7 +147,7 @@ h1 {
         font-size: 1em;
         min-height: 700px;
     }
-    div.boat, div.fish2, div.fish3 {
+    div.boat, div.fish2, div.fish3, span.bubble1, span.bubble2 {
         display: none;
     }
     h1 {
