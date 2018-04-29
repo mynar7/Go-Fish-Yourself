@@ -686,9 +686,9 @@ function assignOppHandListen() {
 function opponentHandCards(){
     if(oppHand) {
         let screenCards = $('.opponentHand').children().length;
-        console.log("screenCards: ", screenCards);
+        //console.log("screenCards: ", screenCards);
         let actualCards = oppHand.length;
-        console.log("actualCards: ", actualCards);        
+        //console.log("actualCards: ", actualCards);        
         if(screenCards > actualCards) {
             let difference = screenCards - actualCards;
             for(let i = 0; i < difference; i++) {
@@ -702,8 +702,8 @@ function opponentHandCards(){
         } else if (screenCards < actualCards) {
             let difference = actualCards - screenCards;
             for(let i = 0; i < difference; i++) {
-                let newCard = $("<img>").attr("src", "./assets/images/cardBack.svg").hide();
-                $(newCard).appendTo(".opponentHand").fadeIn(500);
+                let newCard = $("<img>").attr("src", "./assets/images/cardBack.svg").hide().appendTo(".opponentHand");
+                $(newCard).fadeIn(500);
             }
         }
     } else {
@@ -798,6 +798,12 @@ function addPoint (num) {
 function displayCards() {
     let inHand;
     let onPage;
+    /*
+    if(myHand) {
+        console.log("In hand: ", myHand.length);
+    }
+    console.log("On page: ", $('#btnGrp').children().length);
+    */
     if(myHand && $('#btnGrp').children().length > 0) {
         $('#btnGrp').children().each(function(index){
             inHand = false;
