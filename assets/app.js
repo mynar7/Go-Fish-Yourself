@@ -23,6 +23,7 @@ let lossCount;
 let drawCount;
 let myTurn = false;
 let cpuGame = false;
+let aiMove;
 
 let deckId;
 let myHand;
@@ -42,11 +43,10 @@ let bgColor = "rgb(223, 188, 136)";
 
 //grab the firebase connections reference
 let userCons = db.ref('.info/connected');
-//make a reference for my lobbies folder on the database
+//make a reference for the lobbies folder on the database
 let lobbies = db.ref('/lobbies');
 
-$(document).ready(function () {
-
+//scan lobbies on the database for an open lobby, and if there are no open lobbies, make a new one
 userCons.on("value", function(userList){
     if(userList.val()) {
         //see how many lobbies there are or if there's any
@@ -56,9 +56,10 @@ userCons.on("value", function(userList){
                 makeLobby();
             } else {
                 let lobbied = false;
-                //if there's a lobby already with an empty slot, join it!
+                //if there's a lobby already with an empty slot, join that lobby and start the game
                 lobbiesSnap.forEach(function(lobbyUsers){
                     if (lobbyUsers.numChildren() === 1) {
+                        lobbied = true;
                         //add to here, then return true to break forEach
                         let con = lobbyUsers.ref.push(true);
                         lobbyRef = db.ref('/lobbies/' + con.path.n[1]);
@@ -73,28 +74,25 @@ userCons.on("value", function(userList){
                         //assign ref for data for this lobby
                         dataRef = db.ref('/lobbyData/dataFor' + con.path.n[1]);
                         let dataCon = dataRef.child('players').push(true);  
-                        dataCon.onDisconnect().remove();
+                        //update player id data to db
                         let playerData = dataRef.child('players').child(dataCon.path.n[3]);
                         playerData.update({
                             Id: userId,
                         });
-                        //remove this user from lobby when disconnect
-                        con.onDisconnect().remove();
                         //clear all lobby data when this user disconnects
-                        dataRef.child('chat').onDisconnect().remove();
-                        // dataRef.child('players/' + userName).onDisconnect().remove();                        
+                        con.onDisconnect().remove();
+                        dataCon.onDisconnect().remove();
+                        dataRef.child('chat').onDisconnect().remove();                       
                         assignChat();
-                        lobbied = true;
                         chatPrint(userName, "Joined Lobby");
                         chatUpdate("System", "<span id=sysMsg>Type /help for a list of commands</span>");                        
-                        //go fish stuff
+                        //go fish listeners
                         assignDeckListen();
                         makeDeck();
                         assignMyHandListen();
                         assignOppHandListen();
                         assignPointListen();
                         assignGameOver();
-
                         changeTurn();
                         //grab opponent reference
                         dataRef.child('players').once("value", function(playerSnap){
@@ -105,8 +103,8 @@ userCons.on("value", function(userList){
                         });
                         assignTurn();
                         return true;
-                    }
-                });
+                    }//end if
+                }); //end forEach
                 //create new lobby
                 if(!lobbied) {
                     makeLobby();                             
@@ -116,9 +114,6 @@ userCons.on("value", function(userList){
     
     } //end if userList.val
 }); //end userCons call
-
-});//doc ready
-
 
 function makeLobby() {
     //make a lobby and push to it to create a user
@@ -434,7 +429,7 @@ function parseInput(str) {
     }
 }
 
-//begin Go Fish stuff
+//begin Go Fish code
 
 //initialize and get a new deck of cards
 function makeDeck() {
@@ -473,7 +468,7 @@ function drawCard(num, cpu) {
         }
     }); //end ajax
 }
-
+//helper fx for drawCard that adds card objects to cpu's hand array
 function cpuCards(resp) {
     if(resp.success) {
         if(resp.cards.length === 1){
@@ -494,6 +489,7 @@ function cpuCards(resp) {
     }, 1000);
 }
 
+//helper function for drawCard that adds player card objects to player hand array and updates db if necessary
 function playerCards(resp) {
     if(resp.success) {
         if(resp.cards.length === 1){
@@ -532,7 +528,7 @@ function addToHand (arr) {
    }
    displayCards();
 }
-
+//similar fx to addToHand, except concats/creates cpu's hand array
 function addToOppHand(arr) {
     if(!oppHand){
         oppHand = arr;
@@ -541,8 +537,7 @@ function addToOppHand(arr) {
     }
     opponentHandCards();
 }
-let aiMove;
-
+//primary game fx called from clicking cards that searches for a matching opponent card and updates board/game
 function goFish (card) {
     let cardName =  "Got any " + card.value.toLowerCase() + "s?";
     chatPrint(userName, cardName);
@@ -588,7 +583,7 @@ function goFish (card) {
         }
     }
 }
-
+//this function randomly selects a card from the cpu's hand and searches for a match in the player's hand
 function aiFish() {
     let guess = Math.floor(Math.random() * oppHand.length);
     let card = oppHand[guess];
@@ -634,7 +629,7 @@ function aiFish() {
 
 }
 
-//update both hands
+//update both hands on db
 function updateHands () {
     if(!cpuGame) {
         dataRef.child('data/goFish/hands').update({
@@ -643,7 +638,7 @@ function updateHands () {
         });
     }
 }
-//update only my hand
+//update only my hand on db
 function updateMyHand() {
     if(!cpuGame) {
         dataRef.child('data/goFish/hands').update({
@@ -651,7 +646,7 @@ function updateMyHand() {
         });
     }
 }
-
+//remove hand data from db
 function emptyHand() {
     dataRef.child('data/goFish/hands').child(userId).remove();
 }
@@ -668,21 +663,21 @@ function assignDeckListen() {
     });
     dataRef.child('data/goFish').onDisconnect().remove();    
 }
-
+//listener for player's hand on db
 function assignMyHandListen() {
     dataRef.child('data/goFish/hands').child(userId).on('value', function(snap){
             myHand = snap.val();
             displayCards();
     });
 }
-
+//listener for opponent's hand on db
 function assignOppHandListen() {
     dataRef.child('data/goFish/hands').on('value', function(snap){
         oppHand = snap.child(opponentId).val();
         opponentHandCards();
     });
 }
-
+//looks for differences between DOM cards and oppHand's array of cards and updates the screen appropriately
 function opponentHandCards(){
     if(oppHand) {
         let screenCards = $('.opponentHand').children().length;
@@ -719,7 +714,7 @@ function opponentHandCards(){
     }//if stop
     */
 }
-
+//listener for if either player runs out of cards in hand
 function assignGameOver() {
     dataRef.child('data/goFish/hands').on('child_removed', function(snap){
         myHand = snap.child(userId).val();
@@ -738,7 +733,7 @@ function assignGameOver() {
         }
     });
 }
-
+//update screen with win/loss
 function displayWinLose() {
     if(myPoints > oppPoints) {
         $('#status li').html("<span style='color:rgb(0, 159, 56)'>You win</span");
@@ -748,7 +743,7 @@ function displayWinLose() {
         $('#status li').html("<span style='color:rgb(3, 155, 229)'>You tied</span>");                            
     }
 }
-
+//listener for scores
 function assignPointListen() {
     dataRef.child('data/goFish/points').on('value', function(snap){
         myPoints = snap.child(userId).val();
@@ -756,7 +751,7 @@ function assignPointListen() {
         displayPoints();
     });
 }
-
+//updates page to show score
 function displayPoints() {
     if(myPoints) {
         $('#points').html("My pairs:" + myPoints);
@@ -770,7 +765,7 @@ function displayPoints() {
         $('#oppPoints').html('');            
     }
 }
-
+//adds a point for player to db or locally if single player
 function addPoint (num) {
     if(!cpuGame) {
         dataRef.child('data/goFish/points').once("value", function(snap){
@@ -795,6 +790,7 @@ function addPoint (num) {
     }
 } //end addPoint
 
+//looks for difference between myHand array of cards and cards on screen and updates screen to match
 function displayCards() {
     let inHand;
     let onPage;
@@ -841,6 +837,7 @@ function displayCards() {
     }//end if
 }//end fx
 
+//changes img url info from API to make card images https
 function urlHelp(str){
     //let str = "https://deckofcardsapi.com/static/img/KH.png";
     let str2 = "https://" + str.slice(7);
@@ -885,6 +882,7 @@ function checkPairs() {
     } //end if myHand
 }
 
+//checks for matching cards in cpu hand
 function checkOppPairs() {
     let points = 0;
     if(oppHand) {
@@ -913,6 +911,7 @@ function checkOppPairs() {
     } //end if oppHand
 }
 
+//calls insult api to get unique insult and then sends it to chat
 function getInsult(cpu) {
    var cors = 'https://cors-anywhere.herokuapp.com/'
    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=1 id=adj1> <amount> of <adjective min=1 max=1> <animal> <animal_part>";
@@ -928,8 +927,10 @@ function getInsult(cpu) {
        }
    });//end then 
 }
+
 //ai opponent stuff
 
+//removes database listeners and initializes a single player game against cpu
 function aiOppSetup() {
     /*
     lobbyRef.once(function(snap){
@@ -984,11 +985,14 @@ function aiOppSetup() {
     }
 }
 
+//handles ending a single player game
 function endGame() {
+    myTurn = false;
     clearInterval(aiMove);
     displayWinLose();
 }
 
+//on click function for single player game button
 $('#aiGame').on("click", function(event){
     event.preventDefault();
     $(this).fadeOut(500, function(){
