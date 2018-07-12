@@ -689,16 +689,18 @@ function opponentHandCards(){
             for(let i = 0; i < difference; i++) {
                 let displayedCards = $('.opponentHand').children();
                 let cardNum = screenCards - 1 - i;
-                $(displayedCards[cardNum]).fadeOut(500, function(){
-                    $(this).remove();
-                });
+                $(displayedCards[cardNum]).remove();
+                // $(displayedCards[cardNum]).fadeOut(500, function(){
+                //     $(this).remove();
+                // });
                 
             }
         } else if (screenCards < actualCards) {
             let difference = actualCards - screenCards;
             for(let i = 0; i < difference; i++) {
                 let newCard = $("<img>").attr("src", "./assets/images/cardBack.svg").hide().appendTo(".opponentHand");
-                $(newCard).fadeIn(500);
+                // $(newCard).fadeIn(500);
+                $(newCard).show();
             }
         }
     } else {
@@ -810,9 +812,9 @@ function displayCards() {
                 }//end if
             }//end for
             if(!inHand) {
-                $(this).fadeOut(500, function(){
-                    $(this).remove();
-                });
+                $(this).remove();
+                // $(this).fadeOut(500, function(){
+                // });
             }//end if
         });//end each
         for(let i = 0; i < myHand.length; i++) {
@@ -824,7 +826,8 @@ function displayCards() {
             });//end .each
             if(!onPage){
                 let img = $('<img>').attr("src", urlHelp(myHand[i].images.png)).hide().attr("data-code", myHand[i].code).appendTo('#btnGrp');
-                img.fadeIn();
+                // img.fadeIn();
+                img.show();
             }
         }//end for
     }//end outer if
