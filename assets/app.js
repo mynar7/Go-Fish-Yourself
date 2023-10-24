@@ -916,10 +916,10 @@ function checkOppPairs() {
 
 //calls insult api to get unique insult and then sends it to chat
 function getInsult(cpu) {
-   var cors = 'https://cors-anywhere.herokuapp.com/'
+   // var cors = 'https://cors-anywhere.herokuapp.com/'
    var queryURL = "https://insult.mattbas.org/api/insult.json?template=Go Fish, you <adjective min=1 max=1 id=adj1> <amount> of <adjective min=1 max=1> <animal> <animal_part>";
    $.ajax({
-      url: cors + queryURL,
+      url: queryURL,
       method: "GET"
    })
    .then(function(response) {
